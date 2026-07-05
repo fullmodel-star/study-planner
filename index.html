@@ -183,6 +183,14 @@
   .fld input,.fld select,.fld textarea{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:11px;padding:11px 12px;font-size:15px;color:var(--ink);font-family:inherit}
   .fld textarea{min-height:60px;line-height:1.6}
   .row2{display:flex;gap:10px}.row2>*{flex:1}
+  /* 友善時間選擇 */
+  .tsel{display:flex;align-items:center;gap:8px}
+  .tsel select{flex:1;text-align:center;text-align-last:center;font-size:17px;font-weight:800;padding:12px 10px;border:1px solid var(--line);background:var(--bg);border-radius:12px;color:var(--ink);font-family:inherit}
+  .tsel .cln{font-size:20px;font-weight:900;color:var(--muted);flex:0 0 auto}
+  .dur{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:9px}
+  .dur span{font-size:12px;font-weight:700;color:var(--muted);margin-right:2px}
+  .dur button{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:20px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+  .dur button:active{background:var(--brand);color:#fff;border-color:var(--brand)}
   .daypick{display:flex;gap:5px;flex-wrap:wrap}
   .daypick button{flex:1;min-width:38px;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:9px;padding:9px 0;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
   .daypick button.on{background:var(--brand);color:#fff;border-color:var(--brand)}
@@ -779,6 +787,25 @@ function updHead(){const rk=ninjaRank(overallPct());document.getElementById('hsu
 function exportData(){const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download='學習計畫備份_'+ymd(new Date())+'.json';a.click();URL.revokeObjectURL(u);}
 function importData(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const j=JSON.parse(r.result);if(!j.subjects)throw 0;S=j;save();alert('匯入成功 ✓');go('today');}catch(e){alert('檔案格式不正確');}};r.readAsText(f);inp.value='';}
 
+/* ---------- 友善時間選擇（時/分下拉 + 時長快速鍵）---------- */
+function timeSelects(pfx,value){
+  const [hh,mm]=(value||'').split(':');
+  let ho='',mo='';
+  for(let h=6;h<=23;h++){const v=String(h).padStart(2,'0');ho+=`<option value="${v}" ${v===hh?'selected':''}>${v} 時</option>`;}
+  for(let h=0;h<6;h++){const v=String(h).padStart(2,'0');ho+=`<option value="${v}" ${v===hh?'selected':''}>${v} 時</option>`;}
+  for(let m=0;m<60;m+=5){const v=String(m).padStart(2,'0');mo+=`<option value="${v}" ${v===mm?'selected':''}>${v} 分</option>`;}
+  return `<div class="tsel"><select id="${pfx}h" onchange="onTimeChange('${pfx}')">${ho}</select><span class="cln">:</span><select id="${pfx}m" onchange="onTimeChange('${pfx}')">${mo}</select></div>`;
+}
+function timeVal(pfx){const h=val(pfx+'h'),m=val(pfx+'m');return (h&&m)?h+':'+m:'';}
+function setEndFromStart(mins){
+  const s=timeVal('st'); if(!s)return;
+  const [h,m]=s.split(':').map(Number); let t=Math.min(h*60+m+mins,23*60+55);
+  const eh=String(Math.floor(t/60)).padStart(2,'0'), em=String(t%60).padStart(2,'0');
+  const ehs=document.getElementById('enh'), ems=document.getElementById('enm');
+  if(ehs)ehs.value=eh; if(ems)ems.value=em;
+}
+function onTimeChange(pfx){ if(pfx==='st'){ const s=timeVal('st'), e=timeVal('en'); if(s&&(!e||e<=s)) setEndFromStart(60); } }
+
 /* ================= Modal：固定時段 ================= */
 let mDays=[], mType='self';
 function openBlock(r){
@@ -788,8 +815,9 @@ function openBlock(r){
   const opts=subjOptions(r.subjectId);
   sheet(`<h3>${isNew?'新增固定時段':'編輯固定時段'}</h3>
     <div class="fld"><label>星期（可多選）</label><div class="daypick" id="dp">${[1,2,3,4,5,6,0].map(d=>`<button data-d="${d}" class="${mDays.includes(d)?'on':''}" onclick="tglDay(${d},this)">${DAYW[d].replace('週','')}</button>`).join('')}</div></div>
-    <div class="row2"><div class="fld"><label>開始</label><input type="time" id="mst" value="${r.start}"></div><div class="fld"><label>結束</label><input type="time" id="men" value="${r.end}"></div></div>
-    <div class="fld"><label>類型</label><div class="typepick" id="tp">${Object.entries(TYPES).map(([k,t])=>`<button data-t="${k}" class="${mType===k?'on':''}" onclick="pickType('${k}',this)"><span class="ti">${t.i}</span>${t.n}</button>`).join('')}</div></div>
+    <div class="row2"><div class="fld"><label>開始時間</label>${timeSelects('st',r.start)}</div><div class="fld"><label>結束時間</label>${timeSelects('en',r.end)}</div></div>
+    <div class="dur"><span>時長</span><button type="button" onclick="setEndFromStart(30)">30分</button><button type="button" onclick="setEndFromStart(60)">1小時</button><button type="button" onclick="setEndFromStart(90)">1.5小時</button><button type="button" onclick="setEndFromStart(120)">2小時</button></div>
+    <div class="fld" style="margin-top:13px"><label>類型</label><div class="typepick" id="tp">${Object.entries(TYPES).map(([k,t])=>`<button data-t="${k}" class="${mType===k?'on':''}" onclick="pickType('${k}',this)"><span class="ti">${t.i}</span>${t.n}</button>`).join('')}</div></div>
     <div class="fld" id="subjWrap"><label>修行科目（選了會顯示進度、可按「⚡習得忍術」）</label><select id="msub" onchange="onSubjChange()">${opts}</select></div>
     <div class="fld" id="chapWrap"><label>章節（把這次要讀的章節拉進來，完成任務即標記習得）</label><select id="mchap" onchange="syncTitle()">${chapOptions(r.subjectId,r.chapter)}</select></div>
     <div class="fld"><label>標題（會依類型／科目／章節自動帶入，也可自行修改）</label><input type="text" id="mlbl" value="${esc(r.label||autoTitleFrom(r.type,r.subjectId,r.chapter))}" oninput="lblEdited()" placeholder="例：數學補習班 / 修行・理化預習"></div>
@@ -820,7 +848,7 @@ function onSubjChange(){ const mc=document.getElementById('mchap'); if(mc)mc.inn
 function lblEdited(){ mLblDirty=true; }
 function saveBlock(id){
   if(!mDays.length){alert('請至少選一個星期');return;}
-  const o={days:[...mDays].sort(),start:val('mst'),end:val('men'),type:mType,subjectId:val('msub')||null,chapter:val('mchap')||null,label:val('mlbl').trim(),note:val('mnote').trim()};
+  const o={days:[...mDays].sort(),start:timeVal('st'),end:timeVal('en'),type:mType,subjectId:val('msub')||null,chapter:val('mchap')||null,label:val('mlbl').trim(),note:val('mnote').trim()};
   if(id){const r=S.routine.find(x=>x.id===id);Object.assign(r,o);} else {S.routine.push({id:nid('r'),...o});}
   save();closeOv();TAB==='today'?renderToday():renderWeek();
 }
@@ -829,15 +857,16 @@ function delRoutine(id){if(!confirm('刪除這個固定時段？'))return;S.rout
 /* ================= Modal：當天單次事件 ================= */
 function openEvent(e,key){
   key=key||ymd(cur); const isNew=!e;
-  e=e||{start:'',end:'',type:'custom',subjectId:null,chapter:null,label:'',note:''};
+  e=e||{start:'09:00',end:'10:00',type:'custom',subjectId:null,chapter:null,label:'',note:''};
   mType=e.type;
   mLblDirty=false;
   const opts=subjOptions(e.subjectId);
   const dd=key.split('-');
   sheet(`<h3>${isNew?'新增當天事件':'編輯事件'}</h3>
     <p style="text-align:center;color:var(--muted);font-size:12.5px;margin:-8px 0 14px">${+dd[1]}月${+dd[2]}日 這一天</p>
-    <div class="row2"><div class="fld"><label>開始</label><input type="time" id="mst" value="${e.start}"></div><div class="fld"><label>結束</label><input type="time" id="men" value="${e.end}"></div></div>
-    <div class="fld"><label>類型</label><div class="typepick" id="tp">${Object.entries(TYPES).map(([k,t])=>`<button data-t="${k}" class="${mType===k?'on':''}" onclick="pickType('${k}',this)"><span class="ti">${t.i}</span>${t.n}</button>`).join('')}</div></div>
+    <div class="row2"><div class="fld"><label>開始時間</label>${timeSelects('st',e.start)}</div><div class="fld"><label>結束時間</label>${timeSelects('en',e.end)}</div></div>
+    <div class="dur"><span>時長</span><button type="button" onclick="setEndFromStart(30)">30分</button><button type="button" onclick="setEndFromStart(60)">1小時</button><button type="button" onclick="setEndFromStart(90)">1.5小時</button><button type="button" onclick="setEndFromStart(120)">2小時</button></div>
+    <div class="fld" style="margin-top:13px"><label>類型</label><div class="typepick" id="tp">${Object.entries(TYPES).map(([k,t])=>`<button data-t="${k}" class="${mType===k?'on':''}" onclick="pickType('${k}',this)"><span class="ti">${t.i}</span>${t.n}</button>`).join('')}</div></div>
     <div class="fld" id="subjWrap"><label>科目（選填）</label><select id="msub" onchange="onSubjChange()">${opts}</select></div>
     <div class="fld" id="chapWrap"><label>章節（選填，把要讀的章節拉進來）</label><select id="mchap" onchange="syncTitle()">${chapOptions(e.subjectId,e.chapter)}</select></div>
     <div class="fld"><label>標題（會依類型／科目／章節自動帶入，也可自行修改）</label><input type="text" id="mlbl" value="${esc(e.label||autoTitleFrom(e.type,e.subjectId,e.chapter))}" oninput="lblEdited()" placeholder="例：模擬考 / 試煉・數學"></div>
@@ -846,7 +875,7 @@ function openEvent(e,key){
   syncSubjWrap();
 }
 function saveEvent(key,id){
-  const o={start:val('mst'),end:val('men'),type:mType,subjectId:val('msub')||null,chapter:val('mchap')||null,label:val('mlbl').trim(),note:val('mnote').trim()};
+  const o={start:timeVal('st'),end:timeVal('en'),type:mType,subjectId:val('msub')||null,chapter:val('mchap')||null,label:val('mlbl').trim(),note:val('mnote').trim()};
   if(!o.label&&!o.subjectId){alert('請輸入標題或選科目');return;}
   if(!S.events[key])S.events[key]=[];
   if(id){const e=S.events[key].find(x=>x.id===id);Object.assign(e,o);} else {S.events[key].push({id:nid('e'),...o});}
