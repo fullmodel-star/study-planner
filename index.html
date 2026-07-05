@@ -367,7 +367,8 @@ const CURRIC={
   公民:['經濟生活與消費','市場與價格','生產與企業','分工與貿易','全球化與國際關係','法治與人權','永續發展'],
  }
 };
-function seed(){
+/* 國中三年科目框架（21 科，各含 108 課綱章節範本）*/
+function frameworkSubjects(){
   const subjects=[];
   YEARS.forEach((yr,yi)=>SUBORD.forEach(sj=>{
     subjects.push({id:'g'+(yi+1)+'_'+SUBJ_CODE[sj], cat:sj, grade:yr,
@@ -375,23 +376,36 @@ function seed(){
       tag: yr==='國一'?'複習': yr==='國二'?'預習':'',
       color:SUBJ_COLOR[sj], chaps:ch(CURRIC[yr][sj])});
   }));
-  const S={
+  return subjects;
+}
+/* 預設：乾淨空白（不含示範資料）*/
+function seed(){
+  return {
     student:'小朋友', goal:'國中三年學習計畫',
-    subjects,
-    routine:[],
-    events:{}, checks:{},
+    subjects:[], routine:[], events:{}, checks:{},
     eng:{apps:{v2000:true, gram:true}, note:'每天先完成單字複習 + 一點文法，暑假才不會忘光。', primary:'v2000'}
   };
-  // 預設一週作息（示範，可改）
-  const wd=[1,2,3,4,5]; // 週一到五
-  const add=(days,start,end,type,subjectId,label,note)=>S.routine.push({id:nid('r'),days,start,end,type,subjectId:subjectId||null,label:label||'',note:note||''});
-  add(wd,'09:40','11:00','self','g1_ma','自習・數學複習','先把國一觀念打穩');
-  add(wd,'14:00','15:20','self','g2_na','自習・理化預習','國二新課，慢慢讀');
-  add([2,4],'19:00','21:00','cram',null,'數學補習班','');
-  add([1,3,5],'15:40','16:40','self','g1_en','自習・英語','搭配英語 App');
-  add([6],'10:00','11:30','self','g2_gw','自習・國文預習','');
+}
+/* 一鍵載入：國中三年科目範本 */
+function loadFramework(){
+  if(S.subjects.length && !confirm('載入「國中三年科目範本」？會附加到目前已有的科目後面。')) return;
+  const have=new Set(S.subjects.map(s=>s.id));
+  frameworkSubjects().forEach(s=>{ if(!have.has(s.id)) S.subjects.push(s); });
+  save(); openYear={'國一':true,'國二':true,'國三':true}; go('prog'); toast('📚 已載入國中三年科目範本');
+}
+/* 一鍵載入：完整示範（科目 + 一週作息），給想參考的人 */
+function loadDemo(){
+  if((S.subjects.length||S.routine.length) && !confirm('載入完整示範（科目＋一週作息）？會覆蓋目前的科目與作息。')) return;
+  const D=seed(); D.subjects=frameworkSubjects();
+  const add=(days,start,end,type,subjectId,label,note)=>D.routine.push({id:nid('r'),days,start,end,type,subjectId:subjectId||null,chapter:null,label:label||'',note:note||''});
+  const wd=[1,2,3,4,5];
+  add(wd,'09:40','11:00','self','g1_ma','修行・數學','先把國一觀念打穩');
+  add(wd,'14:00','15:20','self','g2_na','修行・理化預習','國二新課，慢慢讀');
+  add([2,4],'19:00','21:00','cram',null,'數學道場(補習班)','');
+  add([1,3,5],'15:40','16:40','self','g1_en','修行・英語','搭配英語 App');
+  add([6],'10:00','11:30','self','g2_gw','修行・國文','');
   add([0],'16:00','17:00','rest',null,'複習本週 + 休息','週日輕鬆一點');
-  return S;
+  S=D; save(); go('today'); toast('🎬 已載入完整示範');
 }
 /* ---------- 載入 / 儲存 ---------- */
 let S = load();
@@ -665,6 +679,9 @@ function renderProg(){
   const list=document.getElementById('progList');
   const YICON={'國一':'1️⃣','國二':'2️⃣','國三':'3️⃣'};
   let h='';
+  if(!S.subjects.length){
+    h+=`<div class="card empty" style="margin-top:14px">還沒有任何科目 🍃<br>可以一鍵載入國中三年課綱範本，再自行修改。<br><button class="btn mt" style="max-width:280px;margin:12px auto 0" onclick="loadFramework()">📚 載入國中三年科目範本</button></div>`;
+  }
   YEARS.forEach(y=>{
     const arr=byYear(y).slice().sort((a,b)=>(SUBORD.indexOf(a.cat)+99*(a.cat==null))-(SUBORD.indexOf(b.cat)+99*(b.cat==null)));
     const op=openYear[y]!==false;
@@ -735,10 +752,16 @@ function renderSet(){
   </div>
 
   <div class="card setrow">
+    <h4>📚 課程範本</h4>
+    <p>需要時可一鍵載入國中三年（國一～國三）七大科的章節範本，再自行修改。</p>
+    <button class="btn ghost mt" onclick="loadFramework()">📚 載入國中三年科目範本</button>
+    <button class="btn ghost mt" onclick="loadDemo()">🎬 載入完整示範（科目＋一週作息）</button>
+  </div>
+
+  <div class="card setrow">
     <h4>🧰 其他</h4>
     <label class="chk"><input type="checkbox" id="onbk" onchange="localStorage.setItem('sp_onb',this.checked?'':'1')"><span>下次開啟顯示新手引導</span></label>
-    <button class="btn ghost mt" onclick="if(confirm('回到預設的示範計畫？你目前的自訂內容會被覆蓋（可先匯出備份）。')){S=seed();save();go('today');}">↺ 重設為示範計畫</button>
-    <button class="btn ghost mt" style="color:var(--cram)" onclick="if(confirm('清空全部資料（作息、進度、打勾）？此動作無法復原。')){localStorage.removeItem(KEY);S=seed();save();go('today');}">🗑️ 清空全部資料</button>
+    <button class="btn ghost mt" style="color:var(--cram)" onclick="if(confirm('清空全部資料（科目、作息、進度、打勾）？此動作無法復原，建議先匯出備份。')){localStorage.removeItem(KEY);S=seed();save();go('today');toast('🧹 已清空，成為空白計畫');}">🗑️ 清空全部資料（回到空白）</button>
   </div>
 
   <div class="tip">
@@ -880,8 +903,8 @@ if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch
       <div style="display:flex;gap:11px;align-items:flex-start"><span style="font-size:20px">🥷</span><div><b>忍者等級</b>：國一～國三 七大科章節，習得越多、等級越高</div></div>
       <div style="display:flex;gap:11px;align-items:flex-start"><span style="font-size:20px">🔤</span><div><b>英語忍術</b>：接上你們家的英語 App，每天一點不遺忘</div></div>
     </div>
-    我已先放了一份<b>示範修行</b>，直接改成自己的就好！</div>
-    <div class="sbtns" style="margin-top:16px"><button class="ok" onclick="localStorage.setItem('sp_onb','1');closeOv()">開始修行 ▶</button></div>`);
+    目前是<b>空白</b>的，兩種開始方式：到「修行表」自己排時段、到「忍者等級」按<b>📚載入國中三年科目範本</b>；也可到「設定」載入完整示範參考。</div>
+    <div class="sbtns" style="margin-top:16px"><button class="cc" onclick="localStorage.setItem('sp_onb','1');closeOv();go('set')">先看設定/載入範本</button><button class="ok" onclick="localStorage.setItem('sp_onb','1');closeOv()">開始修行 ▶</button></div>`);
   },400);
 })();
 </script>
