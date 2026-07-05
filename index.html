@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="theme-color" content="#ff6a1a">
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="火影修行計畫">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<title>火影修行計畫・學習日曆</title>
+<style>
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  :root{
+    --bg:#fdf4e3;--card:#fffdf8;--ink:#2b2417;--muted:#8a7355;--line:#efe0c6;
+    --brand:#ff6a1a;--brand2:#ff9a4d;--navy:#1b2a4a;
+    --cram:#e0432f;--self:#2f9e44;--eng:#2f6df0;--rest:#a08d6e;--custom:#8b5cf6;--exam:#eab308;
+    --sh:0 8px 22px rgba(120,74,20,.10),0 2px 6px rgba(120,74,20,.05);
+    --sh2:0 12px 30px rgba(180,90,20,.18)}
+  @media (prefers-color-scheme:dark){:root{
+    --bg:#141a2b;--card:#1e2740;--ink:#f2ead9;--muted:#a89b82;--line:#2f3d5c;--navy:#0d1526;
+    --sh:0 8px 24px rgba(0,0,0,.4);--sh2:0 12px 30px rgba(0,0,0,.5)}}
+  html,body{margin:0}
+  body{font-family:"PingFang TC","Microsoft JhengHei",system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--ink);
+    -webkit-font-smoothing:antialiased;padding-bottom:calc(74px + env(safe-area-inset-bottom))}
+  .wrap{max-width:720px;margin:0 auto;padding:0 14px}
+  /* header */
+  header{position:sticky;top:0;z-index:40;background:linear-gradient(180deg,var(--bg) 72%,transparent);padding:calc(12px + env(safe-area-inset-top)) 0 6px}
+  .htop{display:flex;align-items:center;gap:11px;max-width:720px;margin:0 auto;padding:0 14px}
+  .logo{width:44px;height:44px;border-radius:13px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:23px;
+    background:linear-gradient(135deg,#ff8a2b,#e23b2e 92%);box-shadow:0 8px 18px rgba(226,59,46,.34)}
+  .htxt h1{font-size:19px;margin:0;font-weight:900;letter-spacing:.5px}
+  .htxt p{margin:1px 0 0;font-size:11.5px;color:var(--muted)}
+  .hgear{margin-left:auto;background:var(--card);border:1px solid var(--line);border-radius:12px;width:40px;height:40px;font-size:18px;cursor:pointer;box-shadow:var(--sh);color:var(--ink)}
+  /* date bar */
+  .datebar{display:flex;align-items:center;gap:8px;margin:12px 0 4px}
+  .datebar button{background:var(--card);border:1px solid var(--line);border-radius:12px;width:40px;height:44px;font-size:19px;cursor:pointer;box-shadow:var(--sh);color:var(--ink);flex:0 0 auto}
+  .dnow{flex:1;text-align:center;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:7px 8px;box-shadow:var(--sh);cursor:pointer}
+  .dnow b{display:block;font-size:16px;font-weight:900}
+  .dnow span{font-size:11.5px;color:var(--muted)}
+  .dnow.today b{color:var(--brand)}
+  /* generic card */
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--sh)}
+  .sec-t{font-size:13px;font-weight:800;color:var(--muted);margin:20px 4px 9px;letter-spacing:.4px;display:flex;align-items:center;gap:7px}
+  .sec-t .r{margin-left:auto;font-weight:700}
+  /* english must-do */
+  .engbox{border-radius:18px;padding:14px 15px;margin-top:12px;color:#fff;box-shadow:var(--sh2);
+    background:linear-gradient(135deg,#ff7a18,#e23b2e)}
+  .engbox .et{display:flex;align-items:center;gap:9px}
+  .engbox .et b{font-size:15.5px;font-weight:900}
+  .engbox .et .tag{margin-left:auto;font-size:11px;font-weight:800;background:rgba(255,255,255,.22);padding:3px 9px;border-radius:20px}
+  .engbox .em{font-size:12.5px;opacity:.94;margin:7px 0 11px;line-height:1.6}
+  .engbox .erow{display:flex;gap:8px;flex-wrap:wrap}
+  .engbox a.eb,.engbox button.eb{flex:1;min-width:120px;text-align:center;text-decoration:none;border:0;cursor:pointer;font-family:inherit;
+    background:rgba(255,255,255,.95);color:#3b46a8;font-weight:800;font-size:13.5px;border-radius:12px;padding:11px 8px}
+  .engbox button.eb.done{background:rgba(255,255,255,.28);color:#fff}
+  .engbox .due{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .engbox .due a{text-decoration:none;color:#fff;background:rgba(255,255,255,.16);border-radius:10px;padding:6px 10px;font-size:12px;font-weight:700}
+  .engbox .due a b{color:#ffe08a}
+  /* task list */
+  .tasks{display:flex;flex-direction:column;gap:10px;margin-top:2px}
+  .task{display:flex;align-items:flex-start;gap:11px;padding:12px 13px;border-left:5px solid var(--self)}
+  .task .tk{flex:0 0 auto;width:28px;height:28px;border-radius:9px;border:2px solid var(--line);background:transparent;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;font-size:16px;color:#fff;margin-top:1px;transition:.15s}
+  .task.done .tk{background:var(--self);border-color:var(--self)}
+  .task.done .body .tl{text-decoration:line-through;opacity:.55}
+  .task .body{flex:1;min-width:0}
+  .task .time{font-size:12px;font-weight:800;color:var(--muted);font-variant-numeric:tabular-nums}
+  .task .tl{font-size:15px;font-weight:800;margin:1px 0 0;line-height:1.35}
+  .task .badge{display:inline-block;font-size:10.5px;font-weight:800;color:#fff;border-radius:7px;padding:1px 7px;margin-right:6px;vertical-align:1px}
+  .task .sub{font-size:12.5px;color:var(--muted);margin-top:3px;line-height:1.55}
+  .task .prog{margin-top:7px}
+  .task .acts{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap}
+  .task .acts button{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:9px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
+  .task .acts button.p{background:var(--self);color:#fff;border-color:var(--self)}
+  .mini{width:34px;height:34px;border-radius:9px;flex:0 0 auto}
+  .empty{text-align:center;color:var(--muted);padding:26px 16px;font-size:13.5px;line-height:1.8}
+  /* progress bar */
+  .bar{height:8px;border-radius:6px;background:var(--line);overflow:hidden}
+  .bar>i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,var(--brand),#f5a623);transition:width .3s}
+  /* year header (progress tab) */
+  .yhead{display:flex;align-items:center;gap:9px;margin:20px 2px 4px;padding:11px 14px;background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--sh);cursor:pointer}
+  .yhead .yi{font-size:17px}
+  .yhead .yn{font-weight:900;font-size:16px}
+  .yhead .ypct{margin-left:auto;font-weight:900;color:var(--brand);font-size:14px}
+  .yhead .ychev{color:var(--muted);font-size:13px;width:14px;text-align:center}
+  /* subject cards (progress tab) */
+  .subj{padding:13px 14px;margin-top:11px}
+  .subj .sh{display:flex;align-items:center;gap:9px;cursor:pointer}
+  .subj .dot{width:11px;height:11px;border-radius:50%;flex:0 0 auto}
+  .subj .snm{font-weight:800;font-size:15px}
+  .subj .gtag{font-size:10.5px;font-weight:800;border-radius:7px;padding:1px 7px}
+  .subj .pct{margin-left:auto;font-size:13px;font-weight:900;color:var(--muted)}
+  .subj .barwrap{margin-top:9px}
+  .subj .chaps{margin-top:11px;display:flex;flex-direction:column;gap:2px}
+  .chap{display:flex;align-items:center;gap:9px;padding:8px 4px;border-top:1px solid var(--line);font-size:13.5px}
+  .chap .ck{width:22px;height:22px;border-radius:7px;border:2px solid var(--line);cursor:pointer;flex:0 0 auto;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px}
+  .chap.done .ck{background:var(--self);border-color:var(--self)}
+  .chap.done span{text-decoration:line-through;opacity:.5}
+  .chap span{flex:1}
+  .chap .del{background:none;border:0;color:var(--muted);font-size:15px;cursor:pointer;opacity:.5}
+  .subj .subadd{display:flex;gap:6px;margin-top:8px}
+  .subj .subadd input{flex:1;border:1px solid var(--line);background:var(--bg);border-radius:9px;padding:8px 10px;font-size:13px;color:var(--ink);font-family:inherit}
+  .subj .subadd button{border:0;background:var(--brand);color:#fff;border-radius:9px;padding:0 13px;font-weight:800;cursor:pointer}
+  /* week grid */
+  .wk{display:flex;flex-direction:column;gap:9px;margin-top:8px}
+  .wkday{padding:11px 13px}
+  .wkday .wh{display:flex;align-items:center;gap:8px;font-weight:800;font-size:14px}
+  .wkday .wh .today-pill{font-size:10px;background:var(--brand);color:#fff;border-radius:20px;padding:1px 8px;font-weight:800}
+  .wkday .wh .n{margin-left:auto;font-size:11.5px;color:var(--muted);font-weight:700}
+  .wblk{display:flex;align-items:center;gap:9px;margin-top:8px;padding:8px 10px;border-radius:11px;background:var(--bg);cursor:pointer;border-left:4px solid var(--self)}
+  .wblk .wt{font-size:11.5px;font-weight:800;color:var(--muted);font-variant-numeric:tabular-nums;flex:0 0 auto;width:86px}
+  .wblk .wl{font-size:13.5px;font-weight:700;flex:1;min-width:0}
+  .wblk .wtype{font-size:10px;font-weight:800;color:#fff;border-radius:6px;padding:1px 6px}
+  .wkday .none{font-size:12px;color:var(--muted);margin-top:7px;opacity:.8}
+  /* month calendar */
+  .mhead{display:flex;align-items:center;gap:8px;margin:12px 0 10px}
+  .mhead button{background:var(--card);border:1px solid var(--line);border-radius:12px;width:40px;height:42px;font-size:19px;cursor:pointer;box-shadow:var(--sh);color:var(--ink);flex:0 0 auto}
+  .mhead .mt{flex:1;text-align:center;font-size:17px;font-weight:900}
+  .mhead .mt small{display:block;font-size:11px;color:var(--brand);font-weight:700;margin-top:1px}
+  .mdow{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:5px}
+  .mdow span{text-align:center;font-size:11px;font-weight:800;color:var(--muted);padding:2px 0}
+  .mdow span.we{color:var(--cram)}
+  .mgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+  .mcell{position:relative;min-height:56px;border:1px solid var(--line);background:var(--card);border-radius:12px;cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;padding:5px 2px 4px;font-family:inherit;color:var(--ink);box-shadow:var(--sh)}
+  .mcell:active{transform:scale(.95)}
+  .mcell .mnum{font-size:13.5px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+  .mcell.out{opacity:.34}
+  .mcell.we .mnum{color:var(--cram)}
+  .mcell.today{border-color:var(--brand);border-width:2px}
+  .mcell.today .mnum{color:var(--brand)}
+  .mcell.full{background:linear-gradient(180deg,rgba(34,160,107,.14),var(--card))}
+  .mcell .mdots{display:flex;gap:3px;flex-wrap:wrap;justify-content:center;margin-top:5px;max-width:100%}
+  .mcell .mdots i{width:6px;height:6px;border-radius:50%;flex:0 0 auto}
+  .mcell .mchk{position:absolute;top:3px;right:4px;font-size:11px;color:var(--self);font-weight:900}
+  .mcell .mn{position:absolute;top:4px;right:5px;font-size:9.5px;font-weight:800;color:var(--muted);background:var(--bg);border-radius:6px;padding:0 4px;line-height:1.5}
+  .mleg{display:flex;flex-wrap:wrap;gap:5px 12px;justify-content:center;margin-top:14px;font-size:11px;color:var(--muted)}
+  .mleg span{display:inline-flex;align-items:center;gap:4px}
+  .mleg i{width:8px;height:8px;border-radius:50%}
+  .msum{margin-top:14px}
+  /* buttons */
+  .btn{display:block;width:100%;border:0;border-radius:13px;padding:13px;font-size:14.5px;font-weight:800;cursor:pointer;font-family:inherit;background:var(--brand);color:#fff;box-shadow:0 8px 18px rgba(255,106,26,.32)}
+  .btn.ghost{background:var(--card);color:var(--brand);border:1px solid var(--line);box-shadow:var(--sh)}
+  .btn.mt{margin-top:12px}
+  /* fab */
+  .fab{position:fixed;right:calc(16px + env(safe-area-inset-right));bottom:calc(84px + env(safe-area-inset-bottom));z-index:45;
+    width:56px;height:56px;border-radius:50%;border:0;background:linear-gradient(135deg,#ff8a2b,#e23b2e);color:#fff;font-size:28px;cursor:pointer;
+    box-shadow:0 10px 24px rgba(226,59,46,.45);display:flex;align-items:center;justify-content:center}
+  /* bottom nav */
+  nav{position:fixed;left:0;right:0;bottom:0;z-index:44;background:var(--card);border-top:1px solid var(--line);
+    padding:6px 0 calc(6px + env(safe-area-inset-bottom));display:flex}
+  nav button{flex:1;background:none;border:0;cursor:pointer;color:var(--muted);font-family:inherit;font-size:10.5px;font-weight:700;padding:4px 0;display:flex;flex-direction:column;align-items:center;gap:3px}
+  nav button .ni{font-size:21px;line-height:1}
+  nav button.on{color:var(--brand)}
+  /* settings rows */
+  .set{padding:4px 2px}
+  .setrow{padding:14px 15px;margin-top:11px}
+  .setrow h4{margin:0 0 3px;font-size:14.5px}
+  .setrow p{margin:0;font-size:12px;color:var(--muted);line-height:1.65}
+  .setrow label.chk{display:flex;align-items:center;gap:10px;padding:9px 0;font-size:13.5px;border-top:1px solid var(--line);cursor:pointer}
+  .setrow label.chk:first-of-type{border-top:0}
+  .setrow input[type=checkbox]{width:20px;height:20px;accent-color:var(--brand)}
+  .setrow .field{display:flex;flex-direction:column;gap:5px;margin-top:10px}
+  .setrow .field label{font-size:12px;font-weight:700;color:var(--muted)}
+  .setrow input[type=text],.setrow textarea,.setrow select{border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:10px 11px;font-size:14px;color:var(--ink);font-family:inherit;width:100%}
+  .setrow textarea{min-height:64px;resize:vertical;line-height:1.6}
+  .tip{background:#fff7e6;border:1px solid #ffe0a3;border-radius:14px;padding:13px 14px;font-size:12.5px;line-height:1.85;color:#6b551a;margin-top:12px}
+  @media (prefers-color-scheme:dark){.tip{background:#2a2412;border-color:#4a3d17;color:#e5cf8f}}
+  .tip b{font-weight:800}
+  /* modal */
+  .ov{position:fixed;inset:0;background:rgba(20,26,45,.55);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);z-index:60;display:none;align-items:flex-end;justify-content:center}
+  .ov.show{display:flex}
+  .sheet{background:var(--card);width:100%;max-width:560px;border-radius:22px 22px 0 0;padding:18px 18px calc(20px + env(safe-area-inset-bottom));max-height:92vh;overflow:auto;animation:up .25s ease}
+  @media(min-width:560px){.ov{align-items:center}.sheet{border-radius:22px}}
+  @keyframes up{from{transform:translateY(24px);opacity:.4}to{transform:none;opacity:1}}
+  .sheet h3{margin:2px 0 14px;font-size:18px;font-weight:900;text-align:center}
+  .fld{margin-bottom:13px}
+  .fld label{display:block;font-size:12.5px;font-weight:700;color:var(--muted);margin-bottom:5px}
+  .fld input,.fld select,.fld textarea{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:11px;padding:11px 12px;font-size:15px;color:var(--ink);font-family:inherit}
+  .fld textarea{min-height:60px;line-height:1.6}
+  .row2{display:flex;gap:10px}.row2>*{flex:1}
+  .daypick{display:flex;gap:5px;flex-wrap:wrap}
+  .daypick button{flex:1;min-width:38px;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:9px;padding:9px 0;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+  .daypick button.on{background:var(--brand);color:#fff;border-color:var(--brand)}
+  .typepick{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+  .typepick button{border:2px solid var(--line);background:var(--bg);border-radius:11px;padding:10px 4px;font-size:12.5px;font-weight:800;cursor:pointer;font-family:inherit;color:var(--ink);display:flex;flex-direction:column;align-items:center;gap:3px}
+  .typepick button .ti{font-size:19px}
+  .typepick button.on{border-color:var(--brand);background:rgba(255,106,26,.12)}
+  .sbtns{display:flex;gap:10px;margin-top:6px}
+  .sbtns button{flex:1;border:0;border-radius:13px;padding:13px;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit}
+  .sbtns .ok{background:var(--brand);color:#fff}
+  .sbtns .cc{background:var(--bg);color:var(--muted);border:1px solid var(--line)}
+  .sbtns .rm{background:none;color:var(--cram);flex:0 0 auto;padding:13px 16px}
+  .tstat{display:flex;align-items:center;gap:14px;padding:14px 16px;margin-top:12px;border-radius:16px;background:var(--card);border:1px solid var(--line);box-shadow:var(--sh)}
+  .tstat.alldone{background:linear-gradient(135deg,#2f9e44,#16a34a);color:#fff;border-color:transparent}
+  .tstat .ring{--p:0;width:58px;height:58px;border-radius:50%;flex:0 0 auto;display:flex;align-items:center;justify-content:center;background:conic-gradient(var(--brand) calc(var(--p)*1%),var(--line) 0)}
+  .tstat.alldone .ring{background:conic-gradient(#fff calc(var(--p)*1%),rgba(255,255,255,.4) 0)}
+  .tstat .ring span{width:44px;height:44px;border-radius:50%;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:13.5px;font-weight:900;color:var(--ink)}
+  .tstat.alldone .ring span{background:#16a34a;color:#fff}
+  .tstat .ti{min-width:0}
+  .tstat .ti b{display:block;font-size:15.5px}
+  .tstat .ti span{font-size:12px;color:var(--muted);line-height:1.5}
+  .tstat.alldone .ti span{color:rgba(255,255,255,.92)}
+  .tstat .chk{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+  .tstat .chk i{font-size:11px;font-style:normal;padding:2px 8px;border-radius:20px;background:var(--bg);color:var(--muted);font-weight:700}
+  .tstat.alldone .chk i{background:rgba(255,255,255,.18);color:#fff}
+  .tstat .chk i.ok{color:var(--self)}.tstat.alldone .chk i.ok{color:#fff}
+  .rankcard{display:flex;align-items:center;gap:13px;padding:14px 16px;margin-top:14px;border-radius:16px;
+    background:linear-gradient(135deg,#1b2a4a,#31456e);color:#fff;box-shadow:var(--sh2);border:2px solid var(--brand);position:relative;overflow:hidden}
+  .rankcard .rke{font-size:34px;line-height:1;flex:0 0 auto}
+  .rankcard .rkt b{display:block;font-size:16.5px;color:#ffcf8a;font-weight:900}
+  .rankcard .rkt span{font-size:12px;opacity:.92;line-height:1.55}
+  .streak{display:flex;align-items:center;gap:11px;padding:13px 15px;margin-top:12px;border-radius:16px;
+    background:linear-gradient(135deg,#f59e0b,#f97316);color:#fff;box-shadow:var(--sh2)}
+  .streak .big{font-size:30px;font-weight:900;line-height:1}
+  .streak .st{font-size:12.5px;opacity:.95;line-height:1.5}
+  .hide{display:none!important}
+  footer{text-align:center;color:var(--muted);font-size:11px;margin:26px 0 8px;line-height:1.7}
+</style>
+</head>
+<body>
+<header>
+  <div class="htop">
+    <div class="logo"><svg viewBox="-50 -50 100 100" width="30" height="30" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round"><path d="M9 0 a9 9 0 1 1 -9 -9 a19 19 0 1 1 -19 19 a29 29 0 1 1 29 -29"/></svg></div>
+    <div class="htxt"><h1>火影修行計畫 <span style="font-size:12px">🍥</span></h1><p id="hsub">忍者學習手帳・複習國一＋預習國二</p></div>
+    <button class="hgear" onclick="go('set')" aria-label="設定">⚙️</button>
+  </div>
+</header>
+
+<div class="wrap">
+  <!-- ============ 月曆 ============ -->
+  <section id="tab-month">
+    <div class="mhead">
+      <button onclick="monthShift(-1)" aria-label="上個月">‹</button>
+      <div class="mt" id="mTitle" onclick="monthToday()"></div>
+      <button onclick="monthShift(1)" aria-label="下個月">›</button>
+    </div>
+    <div class="mdow"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span class="we">六</span></div>
+    <div class="mgrid" id="mGrid"></div>
+    <div class="mleg">
+      <span><i style="background:var(--cram)"></i>道場</span>
+      <span><i style="background:var(--self)"></i>修行</span>
+      <span><i style="background:var(--eng)"></i>英語</span>
+      <span><i style="background:var(--exam)"></i>試煉</span>
+      <span>✓ 任務全達成</span>
+    </div>
+    <div class="msum" id="mSum"></div>
+  </section>
+
+  <!-- ============ 今日 ============ -->
+  <section id="tab-today" class="hide">
+    <div class="datebar">
+      <button onclick="shiftDay(-1)" aria-label="前一天">‹</button>
+      <div class="dnow" id="dnow" onclick="jumpToday()"></div>
+      <button onclick="shiftDay(1)" aria-label="後一天">›</button>
+    </div>
+    <div id="todayStatus"></div>
+    <div id="streakBox"></div>
+    <div id="engBox"></div>
+    <div class="sec-t">📜 今日任務 <span class="r" id="todayCount"></span></div>
+    <div class="tasks" id="taskList"></div>
+  </section>
+
+  <!-- ============ 週課表 ============ -->
+  <section id="tab-week" class="hide">
+    <div class="sec-t">📜 每週修行表 <span class="r">點時段可編輯</span></div>
+    <div class="wk" id="weekGrid"></div>
+    <button class="btn ghost mt" onclick="openBlock()">＋ 新增固定時段（補習／自習）</button>
+    <div class="tip">💡 這裡設定<b>每週固定</b>的作息：補習班、自習、每日英語。設定好後「今日」分頁每天會自動帶出，不用重排。臨時的活動請到「今日」用右下 <b>＋</b> 新增當天事件。</div>
+  </section>
+
+  <!-- ============ 進度 ============ -->
+  <section id="tab-prog" class="hide">
+    <div id="progStats"></div>
+    <div id="progList"></div>
+  </section>
+
+  <!-- ============ 設定 ============ -->
+  <section id="tab-set" class="hide">
+    <div class="set" id="setBody"></div>
+    <footer>學習計畫日曆 · 資料只存在本裝置，不上傳<br>可加到手機／平板桌面當 App 使用</footer>
+  </section>
+</div>
+
+<button class="fab" id="fab" onclick="onFab()" aria-label="新增">＋</button>
+
+<nav>
+  <button data-t="month" class="on" onclick="go('month')"><span class="ni">📆</span>任務曆</button>
+  <button data-t="today" onclick="go('today')"><span class="ni">📅</span>今日</button>
+  <button data-t="week" onclick="go('week')"><span class="ni">🗓️</span>修行表</button>
+  <button data-t="prog" onclick="go('prog')"><span class="ni">🥷</span>忍者等級</button>
+  <button data-t="set" onclick="go('set')"><span class="ni">⚙️</span>設定</button>
+</nav>
+
+<!-- modal host -->
+<div class="ov" id="ov" onclick="if(event.target===this)closeOv()"><div class="sheet" id="sheet"></div></div>
+
+<script>
+/* =========================================================================
+   學習計畫日曆  —  單檔離線 PWA
+   資料模型（localStorage key: study_planner_v1）
+   {
+     student, goal,
+     subjects:[{id,name,group:'複習'|'預習',color,chaps:[{n,done}]}],
+     routine:[{id,days:[0..6],start,end,type,subjectId,label,note}],   // 每週固定
+     events:{ 'YYYY-MM-DD':[{id,start,end,type,subjectId,label,note}] },// 單次
+     checks:{ 'YYYY-MM-DD':{ blockKey:true } },                        // 打勾
+     eng:{ apps:{key:bool}, note, primary }                            // 英語必修設定
+   }
+   ========================================================================= */
+const KEY='study_planner_v1';
+const DAYW=['週日','週一','週二','週三','週四','週五','週六'];
+const TYPES={
+  cram:{n:'道場(補習)',i:'🥋',c:'var(--cram)'},
+  self:{n:'修行(自習)',i:'🌀',c:'var(--self)'},
+  eng:{n:'英語忍術',i:'🔤',c:'var(--eng)'},
+  exam:{n:'試煉(考試)',i:'⚔️',c:'var(--exam)'},
+  rest:{n:'休息',i:'🍃',c:'var(--rest)'},
+  custom:{n:'其他',i:'✨',c:'var(--custom)'}
+};
+/* 英語家族 App（同網域 localStorage 互通，可自動讀進度） */
+const ENGAPPS=[
+  {key:'engpomo_v1_2000', id:'v2000', name:'國中2000單字', url:'https://fullmodel-star.github.io/english2000/', kind:'vocab', color:'#e8504f'},
+  {key:'englishreading_grammar', id:'gram', name:'國中英語文法', url:'https://fullmodel-star.github.io/englishreading/', kind:'link', color:'#7b5bd6'},
+  {key:'engpomo_v1_1200', id:'v1200', name:'國小1200單字', url:'https://fullmodel-star.github.io/english1200/', kind:'vocab', color:'#2eb872'},
+  {key:'cap_qb_v1', id:'capqb', name:'會考英語題庫', url:'https://fullmodel-star.github.io/cap-qbank/', kind:'link', color:'#4338ca'},
+];
+const HUB='https://fullmodel-star.github.io/english-hub/';
+
+/* ---------- 國中三年課程架構（依 108 課綱常見單元，實際課名依版本/學校可自行修改）---------- */
+function ch(arr){return arr.map(n=>({n,done:false}))}
+function lessons(n){return Array.from({length:n},(_,i)=>'第'+(i+1)+'課')}
+function units(n){return Array.from({length:n},(_,i)=>'Unit '+(i+1))}
+let _sid=1; const nid=p=>p+(_sid++)+'_'+Math.floor(performance.now()*1000%100000);
+const YEARS=['國一','國二','國三'];
+const SUBORD=['國文','英語','數學','自然','歷史','地理','公民'];
+const SUBJ_CODE={國文:'gw',英語:'en',數學:'ma',自然:'na',歷史:'his',地理:'geo',公民:'civ'};
+const SUBJ_COLOR={國文:'#e0555a',英語:'#4f7cff',數學:'#f0932b',自然:'#22a06b',歷史:'#8e5a3c',地理:'#2d98da',公民:'#a55eea'};
+const NAT_NAME={'國一':'自然（生物）','國二':'自然（理化）','國三':'自然（理化・地科）'};
+const CURRIC={
+ '國一':{
+  國文:lessons(12), 英語:units(10),
+  數學:['正數與負數','整數的運算','分數的運算','一元一次方程式','二元一次聯立方程式','直角坐標與二元一次方程式的圖形','比、比例與正比反比','一元一次不等式','統計圖表與資料整理'],
+  自然:['生物與細胞','養分','植物的營養與運輸','人體的營養與消化','神經與內分泌協調','生殖','遺傳','演化與生物多樣性','生物與環境'],
+  歷史:['史前臺灣與原住民','大航海時代的臺灣','鄭氏時期','清領前期','清領後期與開港','日本統治時期','戰後臺灣的政治','戰後臺灣的經濟與社會'],
+  地理:['位置與範圍','地形','氣候與水文','海岸與島嶼','人口','第一級產業','第二三級產業','都市與交通','區域特色'],
+  公民:['個人與社會生活','家庭','學校與同儕','社區與社會','性別與平等','文化與多元','媒體識讀'],
+ },
+ '國二':{
+  國文:lessons(12), 英語:units(10),
+  數學:['乘法公式與多項式','平方根與畢氏定理','因式分解','一元二次方程式','數列與級數','一次函數','三角形的基本性質','平行與四邊形'],
+  自然:['基本測量與科學方法','物質的組成與分類','水溶液','原子與分子','溫度與熱','波動與聲音','光與顏色','力與運動'],
+  歷史:['商周與春秋戰國','秦漢帝國','魏晉南北朝','隋唐盛世','宋元的發展','明清的興衰','近代中國的變局'],
+  地理:['東亞與中國概述','中國的地形與氣候','中國的人口與都市','中國的區域地理','日本與韓國','東南亞','南亞'],
+  公民:['社會規範與法律','人民的權利與義務','政府的組織與運作','民主政治與參與','政黨與選舉','人權的保障'],
+ },
+ '國三':{
+  國文:lessons(10), 英語:units(8),
+  數學:['比例線段與相似形','圓','二次函數 y=ax²','幾何推理與證明','機率','統計與資料分析'],
+  自然:['電流與電路','電流的磁效應','電磁感應','功與能量','化學反應與計量','酸、鹼、鹽','氧化還原與電池','有機化合物','地球的構造與板塊','天氣與氣候','天文與宇宙'],
+  歷史:['世界古文明','中古歐洲與伊斯蘭','近代歐洲的興起','工業革命與帝國主義','兩次世界大戰','冷戰與當代世界'],
+  地理:['西亞與北非','非洲','歐洲','俄羅斯','北美洲','中南美洲','大洋洲與兩極'],
+  公民:['經濟生活與消費','市場與價格','生產與企業','分工與貿易','全球化與國際關係','法治與人權','永續發展'],
+ }
+};
+function seed(){
+  const subjects=[];
+  YEARS.forEach((yr,yi)=>SUBORD.forEach(sj=>{
+    subjects.push({id:'g'+(yi+1)+'_'+SUBJ_CODE[sj], cat:sj, grade:yr,
+      name: sj==='自然'?NAT_NAME[yr]:sj,
+      tag: yr==='國一'?'複習': yr==='國二'?'預習':'',
+      color:SUBJ_COLOR[sj], chaps:ch(CURRIC[yr][sj])});
+  }));
+  const S={
+    student:'小朋友', goal:'國中三年學習計畫',
+    subjects,
+    routine:[],
+    events:{}, checks:{},
+    eng:{apps:{v2000:true, gram:true}, note:'每天先完成單字複習 + 一點文法，暑假才不會忘光。', primary:'v2000'}
+  };
+  // 預設一週作息（示範，可改）
+  const wd=[1,2,3,4,5]; // 週一到五
+  const add=(days,start,end,type,subjectId,label,note)=>S.routine.push({id:nid('r'),days,start,end,type,subjectId:subjectId||null,label:label||'',note:note||''});
+  add(wd,'09:40','11:00','self','g1_ma','自習・數學複習','先把國一觀念打穩');
+  add(wd,'14:00','15:20','self','g2_na','自習・理化預習','國二新課，慢慢讀');
+  add([2,4],'19:00','21:00','cram',null,'數學補習班','');
+  add([1,3,5],'15:40','16:40','self','g1_en','自習・英語','搭配英語 App');
+  add([6],'10:00','11:30','self','g2_gw','自習・國文預習','');
+  add([0],'16:00','17:00','rest',null,'複習本週 + 休息','週日輕鬆一點');
+  return S;
+}
+/* ---------- 載入 / 儲存 ---------- */
+let S = load();
+function load(){try{const j=JSON.parse(localStorage.getItem(KEY));if(j&&j.subjects)return norm(j);}catch(e){} return seed();}
+function norm(j){ j.subjects=j.subjects||[]; j.routine=j.routine||[]; j.events=j.events||{}; j.checks=j.checks||{};
+  j.eng=j.eng||{}; j.eng.apps=j.eng.apps||{}; if(!('note'in j.eng))j.eng.note=''; if(!('primary'in j.eng))j.eng.primary=null;
+  j.subjects.forEach(s=>{
+    s.chaps=(s.chaps||[]).map(c=>typeof c==='string'?{n:c,done:false}:c);
+    if(!s.grade){ s.grade = s.group==='預習'?'國二' : '國一'; if(s.group&&!('tag'in s))s.tag=s.group; }
+    if(!('tag'in s))s.tag='';
+  }); return j; }
+function save(){localStorage.setItem(KEY,JSON.stringify(S));}
+
+/* ---------- 日期工具 ---------- */
+let cur=new Date(); cur.setHours(0,0,0,0);
+let curMonth=new Date(); curMonth.setDate(1); curMonth.setHours(0,0,0,0);
+function ymd(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function isToday(d){return ymd(d)===ymd(new Date());}
+function subjOf(id){return S.subjects.find(x=>x.id===id);}
+function subjOptions(selId){
+  let h=`<option value="">— 不指定 —</option>`;
+  ['國一','國二','國三'].forEach(y=>{
+    const arr=S.subjects.filter(s=>s.grade===y);
+    if(!arr.length)return;
+    h+=`<optgroup label="${y}">`+arr.map(s=>`<option value="${s.id}" ${selId===s.id?'selected':''}>${esc(s.name)}${s.tag?'（'+s.tag+'）':''}</option>`).join('')+`</optgroup>`;
+  });
+  // 沒有年級的（自訂）
+  const other=S.subjects.filter(s=>!['國一','國二','國三'].includes(s.grade));
+  if(other.length)h+=`<optgroup label="其他">`+other.map(s=>`<option value="${s.id}" ${selId===s.id?'selected':''}>${esc(s.name)}</option>`).join('')+`</optgroup>`;
+  return h;
+}
+/* ---------- 忍者等級（依總進度）---------- */
+const RANK_THR=[10,25,45,65,85,100];
+function overallPct(){let d=0,t=0;S.subjects.forEach(s=>{d+=s.chaps.filter(c=>c.done).length;t+=s.chaps.length;});return t?Math.round(d/t*100):0;}
+function ninjaRank(pct){
+  if(pct>=100)return{n:'火影',e:'🔥',d:'木葉最強，你就是火影！'};
+  if(pct>=85)return{n:'傳說之忍',e:'🌟',d:'距離火影只差一步！'};
+  if(pct>=65)return{n:'精英上忍',e:'⚡',d:'再拚一點就是傳說！'};
+  if(pct>=45)return{n:'上忍',e:'⚔️',d:'實力堅強的上忍！'};
+  if(pct>=25)return{n:'中忍',e:'🗡️',d:'升上中忍，繼續加油！'};
+  if(pct>=10)return{n:'下忍',e:'🥷',d:'正式成為忍者！'};
+  return{n:'學院學生',e:'🍃',d:'修行才剛開始，衝吧！'};
+}
+
+/* ---------- 導覽 ---------- */
+let TAB='month';
+function go(t){TAB=t;
+  ['month','today','week','prog','set'].forEach(x=>document.getElementById('tab-'+x).classList.toggle('hide',x!==t));
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
+  document.getElementById('fab').classList.toggle('hide',t==='set'||t==='prog'||t==='month');
+  if(t==='month')renderMonth();if(t==='today')renderToday();if(t==='week')renderWeek();if(t==='prog')renderProg();if(t==='set')renderSet();
+  window.scrollTo(0,0);
+}
+function shiftDay(n){cur.setDate(cur.getDate()+n);renderToday();}
+function jumpToday(){cur=new Date();cur.setHours(0,0,0,0);renderToday();}
+function onFab(){ if(TAB==='week'){openBlock();} else {openEvent();} }
+
+/* ---------- 取得某日的所有區塊 ---------- */
+function blocksFor(d){
+  const dow=d.getDay(), key=ymd(d);
+  const out=[];
+  // eng 類型的區塊與「每日英語」卡共用同一個打勾狀態（eng_日期），不會重複計算
+  S.routine.forEach(r=>{ if(r.days.includes(dow)) out.push({...r,_k:r.type==='eng'?('eng_'+key):('r_'+r.id),_src:'routine'}); });
+  (S.events[key]||[]).forEach(e=> out.push({...e,_k:e.type==='eng'?('eng_'+key):('e_'+e.id),_src:'event'}) );
+  out.sort((a,b)=>(a.start||'').localeCompare(b.start||''));
+  return out;
+}
+/* 一天的完成度（含每日英語必修，供儀表板與連勝共用）*/
+function dayProgress(key,blks){
+  const engReq=ENGAPPS.some(a=>S.eng.apps[a.id]);
+  const engDone=engReq&&isChecked(key,'eng_'+key);
+  const nb=blks.filter(b=>b.type!=='eng');
+  const total=nb.length+(engReq?1:0);
+  const done=nb.filter(b=>isChecked(key,b._k)).length+(engDone?1:0);
+  return {total,done,all:total>0&&done===total,engReq,engDone,nb};
+}
+function isChecked(key,bk){return !!(S.checks[key]&&S.checks[key][bk]);}
+function setChecked(key,bk,v){ if(!S.checks[key])S.checks[key]={}; if(v)S.checks[key][bk]=true; else delete S.checks[key][bk]; if(!Object.keys(S.checks[key]).length)delete S.checks[key]; save(); }
+
+/* ================= 月曆 ================= */
+function monthShift(n){curMonth.setMonth(curMonth.getMonth()+n);renderMonth();}
+function monthToday(){curMonth=new Date();curMonth.setDate(1);curMonth.setHours(0,0,0,0);renderMonth();}
+function cellPick(key){cur=new Date(key+'T00:00:00');cur.setHours(0,0,0,0);go('today');}
+function renderMonth(){
+  const y=curMonth.getFullYear(), m=curMonth.getMonth(), tKey=ymd(new Date());
+  document.getElementById('mTitle').innerHTML=`${y} 年 ${m+1} 月<small>點日期看當天任務</small>`;
+  const first=new Date(y,m,1); const start=new Date(first); start.setDate(1-first.getDay());
+  let h='';
+  for(let i=0;i<42;i++){
+    const d=new Date(start); d.setDate(start.getDate()+i); d.setHours(0,0,0,0);
+    const key=ymd(d), inM=d.getMonth()===m, we=(d.getDay()===0||d.getDay()===6);
+    const blks=blocksFor(d);
+    const done=blks.filter(b=>isChecked(key,b._k)).length;
+    const engKey='eng_'+key, engOn=ENGAPPS.some(a=>S.eng.apps[a.id]);
+    const hasEng=blks.some(b=>b.type==='eng');
+    // 收集顏色（去重、依類型）
+    const types=[...new Set(blks.map(b=>b.type))];
+    const dots=types.slice(0,4).map(t=>`<i style="background:${(TYPES[t]||TYPES.custom).c}"></i>`).join('');
+    const full = blks.length>0 && done===blks.length;
+    let corner='';
+    if(full) corner='<span class="mchk">✓</span>';
+    else if(blks.length) corner=`<span class="mn">${done}/${blks.length}</span>`;
+    h+=`<button class="mcell ${inM?'':'out'} ${we?'we':''} ${key===tKey?'today':''} ${full?'full':''}" onclick="cellPick('${key}')">
+      <span class="mnum">${d.getDate()}</span>
+      ${corner}
+      <span class="mdots">${dots}</span>
+    </button>`;
+  }
+  document.getElementById('mGrid').innerHTML=h;
+  // 本月摘要
+  let planned=0,fin=0,dd=new Date(y,m,1);
+  const dim=new Date(y,m+1,0).getDate();
+  for(let i=1;i<=dim;i++){const d=new Date(y,m,i);const key=ymd(d);const b=blocksFor(d);planned+=b.length;fin+=b.filter(x=>isChecked(key,x._k)).length;}
+  document.getElementById('mSum').innerHTML=`<div class="card setrow" style="margin-top:0"><h4>📆 ${m+1} 月修行概況</h4><p>本月共發布 <b>${planned}</b> 個任務，已達成 <b style="color:var(--self)">${fin}</b> 個（${planned?Math.round(fin/planned*100):0}%）。<br>點任一天的方格，即可查看／編輯當天的道場、修行與英語忍術。</p></div>`;
+}
+
+/* ================= 今日 ================= */
+function renderToday(){
+  updHead();
+  const d=cur, key=ymd(d);
+  const dn=document.getElementById('dnow');
+  dn.className='dnow'+(isToday(d)?' today':'');
+  dn.innerHTML=`<b>${d.getMonth()+1}月${d.getDate()}日 ${DAYW[d.getDay()]}</b><span>${isToday(d)?'今天':'點此回到今天'}</span>`;
+  const blks=blocksFor(d);
+  const done=blks.filter(b=>isChecked(key,b._k)).length;
+  renderTodayStatus(d,key,blks,done);
+  renderStreak();
+  renderEng(d,key);
+  document.getElementById('todayCount').textContent = blks.length? `任務 ${done}/${blks.length}` : '';
+  const list=document.getElementById('taskList');
+  if(!blks.length){ list.innerHTML='<div class="card empty">今天還沒有任務 🍃<br>用右下 <b>＋</b> 發布當天任務，或到「修行表」排每週固定修行。</div>'; return; }
+  list.innerHTML=blks.map(b=>taskCard(b,key)).join('');
+}
+/* 今日完成儀表板：把當天所有任務＋每日英語一起算，確認今天都做完 */
+function renderTodayStatus(d,key,blks,doneBlk){
+  const el=document.getElementById('todayStatus');
+  const P=dayProgress(key,blks);
+  const total=P.total, done=P.done;
+  if(!total){el.innerHTML='';return;}
+  const pct=Math.round(done/total*100), all=P.all;
+  // 小勾點：每項任務＋英語
+  const chips=P.nb.map(b=>{const ok=isChecked(key,b._k);const t=(TYPES[b.type]||TYPES.custom);return `<i class="${ok?'ok':''}">${ok?'✓':'○'} ${t.i}${esc((b.label||t.n)).slice(0,6)}</i>`;}).join('')
+    + (P.engReq?`<i class="${P.engDone?'ok':''}">${P.engDone?'✓':'○'} 🔤英語</i>`:'');
+  el.innerHTML=`<div class="tstat ${all?'alldone':''}">
+    <div class="ring" style="--p:${pct}"><span>${done}/${total}</span></div>
+    <div class="ti"><b>${all?'🎉 今日修行全部完成！':`今日完成度 ${pct}%`}</b>
+      <span>${all?'太強了，火之意志 +1，明天繼續 🔥':`還有 <b>${total-done}</b> 項任務要完成，衝吧！`}</span>
+      <div class="chk">${chips}</div>
+    </div>
+  </div>`;
+}
+function taskCard(b,key){
+  const T=TYPES[b.type]||TYPES.custom;
+  const ck=isChecked(key,b._k);
+  const sub=b.subjectId?subjOf(b.subjectId):null;
+  let title=b.label||T.n;
+  if(!b.label&&sub)title=sub.name;
+  let subline='';
+  if(sub){
+    const dd=sub.chaps.filter(c=>c.done).length, tt=sub.chaps.length;
+    const tgt=b.chapter?sub.chaps.find(c=>c.n===b.chapter):null;
+    const nextC=sub.chaps.find(c=>!c.done);
+    const focus = b.chapter ? `　🎯 本次：<b>${esc(b.chapter)}</b>${tgt&&tgt.done?' ✓':''}` : (nextC?`　▶ 下一章：<b>${esc(nextC.n)}</b>`:'　🎉 已全部完成');
+    subline=`<div class="sub">📘 進度 ${dd}/${tt}${focus}</div>
+      <div class="prog"><div class="bar"><i style="width:${tt?Math.round(dd/tt*100):0}%"></i></div></div>`;
+  }
+  if(b.note)subline+=`<div class="sub">📝 ${esc(b.note)}</div>`;
+  let acts='';
+  if(sub){
+    const tgt=b.chapter?sub.chaps.find(c=>c.n===b.chapter):null;
+    if(tgt&&!tgt.done) acts=`<div class="acts"><button class="p" onclick="advChapNamed('${sub.id}','${encodeURIComponent(b.chapter)}',event)">⚡ 習得忍術：${esc(b.chapter)}</button></div>`;
+    else if(!b.chapter){ const nextC=sub.chaps.find(c=>!c.done);
+      if(nextC)acts=`<div class="acts"><button class="p" onclick="advChap('${sub.id}',event)">⚡ 習得忍術：${esc(nextC.n)}</button></div>`; }
+  }
+  const eb=b._src==='event'?`<button class="del" style="background:none;border:0;color:var(--muted);font-size:16px;cursor:pointer;opacity:.5" onclick="delEvent('${key}','${b.id}',event)">🗑️</button>`:'';
+  return `<div class="card task ${ck?'done':''}" style="border-left-color:${T.c}">
+    <button class="tk" onclick="toggleTask('${key}','${b._k}',event)">${ck?'✓':''}</button>
+    <div class="body" onclick="editBlock('${b._src}','${b.id}','${key}')">
+      <div class="time">${b.start||''}${b.end?' – '+b.end:''} ${eb}</div>
+      <div class="tl"><span class="badge" style="background:${T.c}">${T.i} ${T.n}</span>${esc(title)}</div>
+      ${subline}
+    </div>
+    ${acts}
+  </div>`;
+}
+function toggleTask(key,bk,ev){ev.stopPropagation();setChecked(key,bk,!isChecked(key,bk));renderToday();}
+function advChap(sid,ev){ev&&ev.stopPropagation();const s=subjOf(sid);const c=s.chaps.find(x=>!x.done);if(c){c.done=true;save();renderToday();toast('⚡ 習得「'+c.n+'」！');}}
+function advChapNamed(sid,name,ev){ev&&ev.stopPropagation();name=decodeURIComponent(name);const s=subjOf(sid);const c=s.chaps.find(x=>x.n===name);if(c&&!c.done){c.done=true;save();renderToday();toast('⚡ 習得「'+c.n+'」！');}}
+function delEvent(key,id,ev){ev.stopPropagation();if(!confirm('刪除這個當天事件？'))return;S.events[key]=(S.events[key]||[]).filter(e=>e.id!==id);if(!S.events[key].length)delete S.events[key];save();renderToday();}
+function editBlock(src,id,key){ if(src==='routine'){const r=S.routine.find(x=>x.id===id);openBlock(r);} else {const e=(S.events[key]||[]).find(x=>x.id===id);openEvent(e,key);} }
+
+/* streak：連續全部完成的天數（到今天為止） */
+function renderStreak(){
+  const box=document.getElementById('streakBox');
+  let n=0; let d=new Date(); d.setHours(0,0,0,0);
+  for(let i=0;i<400;i++){
+    const key=ymd(d), P=dayProgress(key,blocksFor(d));
+    if(i===0 && P.total===0){ d.setDate(d.getDate()-1); continue; } // 今天還沒排就往前看
+    if(P.total===0) break;
+    if(P.all){n++; d.setDate(d.getDate()-1);} else break;
+  }
+  box.innerHTML = n>=2 ? `<div class="streak"><div class="big">🔥${n}</div><div class="st"><b>火之意志・連續修行 ${n} 天！</b><br>意志之火不滅，繼續前進 🔥</div></div>` : '';
+}
+
+/* 英語必修卡 */
+function renderEng(d,key){
+  const box=document.getElementById('engBox');
+  const picked=ENGAPPS.filter(a=>S.eng.apps[a.id]);
+  if(!picked.length){ box.innerHTML=`<div class="engbox"><div class="et"><b>🔤 每日英語忍術</b><span class="tag">未設定</span></div><div class="em">到「設定」開啟每日英語忍術，把英語 App 加進每天的修行。</div><div class="erow"><button class="eb" onclick="go('set')">前往設定 ›</button></div></div>`; return; }
+  const engKey='eng_'+key;
+  const ck=isChecked(key,engKey);
+  const prim=ENGAPPS.find(a=>a.id===S.eng.primary)||picked[0];
+  // 讀各 App 進度（同網域才有值）
+  const dues=picked.map(a=>({a,...engStat(a)}));
+  const dueHtml=dues.map(x=> x.text? `<a href="${x.a.url}" target="_blank" rel="noopener">${x.a.name}：${x.text}</a>`:'').join('');
+  box.innerHTML=`<div class="engbox">
+    <div class="et"><b>🔤 每日英語忍術</b><span class="tag">${ck?'今日已修得 ✓':'今日必修'}</span></div>
+    <div class="em">${esc(S.eng.note||'每天固定練一點英語，暑假不遺忘。')}</div>
+    <div class="erow">
+      <a class="eb" href="${prim.url}" target="_blank" rel="noopener">開啟 ${prim.name} ▶</a>
+      <button class="eb ${ck?'done':''}" onclick="toggleTask('${key}','${engKey}',event)">${ck?'✅ 已修得':'修行完成 ○'}</button>
+    </div>
+    ${dueHtml?`<div class="due">${dueHtml}</div>`:''}
+  </div>`;
+}
+function engStat(a){
+  try{
+    if(a.kind==='vocab'){
+      const S2=JSON.parse(localStorage.getItem(a.key))||{}; const srs=S2.srs||{}; const now=Date.now();
+      const learned=Object.keys(srs).length;
+      const due=Object.keys(srs).reduce((n,k)=>{const e=srs[k];return n+((e&&e.due&&e.due<=now)?1:0);},0);
+      if(!learned)return{text:'尚未開始'};
+      return{text: due? `待複習 ${due} 字`:`已學 ${learned}・複習完 ✓`};
+    }
+  }catch(e){}
+  return{text:''};
+}
+
+/* ================= 週課表 ================= */
+function renderWeek(){
+  const g=document.getElementById('weekGrid'); const todayDow=new Date().getDay();
+  let h='';
+  for(let dw=1;dw<=7;dw++){ const dow=dw%7; // 週一..週日
+    const blks=S.routine.filter(r=>r.days.includes(dow)).sort((a,b)=>(a.start||'').localeCompare(b.start||''));
+    h+=`<div class="card wkday"><div class="wh">${DAYW[dow]}${dow===todayDow?'<span class="today-pill">今天</span>':''}<span class="n">${blks.length?blks.length+' 個時段':''}</span></div>`;
+    if(!blks.length)h+='<div class="none">— 沒有安排 —</div>';
+    else h+=blks.map(r=>{const T=TYPES[r.type]||TYPES.custom;const s=r.subjectId?subjOf(r.subjectId):null;const lbl=r.label||(s?s.name:T.n);
+      return `<div class="wblk" style="border-left-color:${T.c}" onclick="openBlock(S.routine.find(x=>x.id==='${r.id}'))"><span class="wt">${r.start}–${r.end}</span><span class="wl">${esc(lbl)}</span><span class="wtype" style="background:${T.c}">${T.i}</span></div>`;}).join('');
+    h+='</div>';
+  }
+  g.innerHTML=h;
+}
+
+/* ================= 進度 ================= */
+function renderProg(){
+  updHead();
+  const st=document.getElementById('progStats');
+  let td=0,tt=0; S.subjects.forEach(s=>{td+=s.chaps.filter(c=>c.done).length;tt+=s.chaps.length;});
+  const pctG=arr=>{let a=0,b=0;arr.forEach(s=>{a+=s.chaps.filter(c=>c.done).length;b+=s.chaps.length;});return b?Math.round(a/b*100):0;};
+  const byYear=y=>S.subjects.filter(s=>s.grade===y);
+  const opct=tt?Math.round(td/tt*100):0, rk=ninjaRank(opct), thr=RANK_THR.find(t=>t>opct);
+  st.innerHTML=`<div class="rankcard">
+      <div class="rke">${rk.e}</div>
+      <div class="rkt"><b>忍者等級：${rk.n}</b><span>${rk.d}${thr?`　🎯 再完成 <b style="color:#fff">${thr-opct}%</b> 就能升階！`:'　👑 已達最高！'}</span></div>
+    </div>
+    <div class="card setrow" style="margin-top:12px">
+    <h4>📜 國中三年修行進度 <span style="float:right;color:var(--brand)">${opct}%</span></h4>
+    <div class="barwrap" style="margin-top:9px"><div class="bar"><i style="width:${tt?Math.round(td/tt*100):0}%"></i></div></div>
+    <p style="margin-top:9px">已完成 <b>${td}</b> / ${tt} 章節　·　國一 ${pctG(byYear('國一'))}%　·　國二 ${pctG(byYear('國二'))}%　·　國三 ${pctG(byYear('國三'))}%</p>
+  </div>`;
+  const list=document.getElementById('progList');
+  const YICON={'國一':'1️⃣','國二':'2️⃣','國三':'3️⃣'};
+  let h='';
+  YEARS.forEach(y=>{
+    const arr=byYear(y).slice().sort((a,b)=>(SUBORD.indexOf(a.cat)+99*(a.cat==null))-(SUBORD.indexOf(b.cat)+99*(b.cat==null)));
+    const op=openYear[y]!==false;
+    h+=`<div class="yhead ${op?'':'cl'}" onclick="openYear['${y}']=${!op?'true':'false'};renderProg()">
+      <span class="yi">${YICON[y]}</span><span class="yn">${y}</span>
+      <span class="ypct">${arr.length?pctG(arr)+'%':'—'}</span><span class="ychev">${op?'▾':'▸'}</span></div>`;
+    if(op){
+      h += arr.map(subjCard).join('');
+      h += `<button class="btn ghost" style="margin-top:10px;padding:10px;font-size:13px" onclick="openSubjectFor('${y}')">＋ 在${y}新增科目</button>`;
+    }
+  });
+  list.innerHTML=h;
+}
+let openSub={}, openYear={'國一':true,'國二':true,'國三':true};
+function subjCard(s){
+  const dd=s.chaps.filter(c=>c.done).length, tt=s.chaps.length, pct=tt?Math.round(dd/tt*100):0;
+  const opened=openSub[s.id];
+  const tcol=s.tag==='複習'?'#f59e0b':(s.tag==='預習'?'#22a06b':'#64748b');
+  const tagB=s.tag?`<span class="gtag" style="background:${tcol}22;color:${tcol}">${s.tag==='複習'?'🔁複習':s.tag==='預習'?'🌱預習':esc(s.tag)}</span>`:'';
+  const chaps=s.chaps.map((c,i)=>`<div class="chap ${c.done?'done':''}"><button class="ck" onclick="toggleChap('${s.id}',${i})">${c.done?'✓':''}</button><span>${esc(c.n)}</span><button class="del" onclick="delChap('${s.id}',${i})">✕</button></div>`).join('');
+  return `<div class="card subj">
+    <div class="sh" onclick="openSub['${s.id}']=!openSub['${s.id}'];renderProg()">
+      <span class="dot" style="background:${s.color}"></span>
+      <span class="snm">${esc(s.name)}</span>
+      ${tagB}
+      <span class="pct">${pct}% <small style="font-weight:700;opacity:.7">${dd}/${tt}</small></span>
+    </div>
+    <div class="barwrap"><div class="bar"><i style="width:${pct}%;background:${s.color}"></i></div></div>
+    ${opened?`<div class="chaps">${chaps||'<div class="none" style="padding:6px">還沒有章節</div>'}</div>
+      <div class="subadd"><input id="ci_${s.id}" placeholder="新增章節名稱…" onkeydown="if(event.key==='Enter')addChap('${s.id}')"><button onclick="addChap('${s.id}')">＋</button></div>
+      <div style="display:flex;gap:8px;margin-top:10px"><button class="btn ghost" style="flex:1;padding:9px;font-size:12.5px" onclick="editSubject('${s.id}')">✏️ 編輯科目</button><button class="btn ghost" style="flex:0 0 auto;padding:9px 14px;font-size:12.5px;color:var(--cram)" onclick="delSubject('${s.id}')">刪除</button></div>`:''}
+  </div>`;
+}
+function toggleChap(sid,i){const s=subjOf(sid);s.chaps[i].done=!s.chaps[i].done;save();renderProg();}
+function delChap(sid,i){const s=subjOf(sid);s.chaps.splice(i,1);save();renderProg();}
+function addChap(sid){const el=document.getElementById('ci_'+sid);const v=(el.value||'').trim();if(!v)return;subjOf(sid).chaps.push({n:v,done:false});save();renderProg();setTimeout(()=>{const e=document.getElementById('ci_'+sid);if(e){e.focus();}},30);}
+function delSubject(sid){if(!confirm('刪除整個科目與其進度？'))return;S.subjects=S.subjects.filter(x=>x.id!==sid);S.routine.forEach(r=>{if(r.subjectId===sid)r.subjectId=null;});save();renderProg();}
+
+/* ================= 設定 ================= */
+function renderSet(){
+  const b=document.getElementById('setBody');
+  const engChecks=ENGAPPS.map(a=>`<label class="chk"><input type="checkbox" ${S.eng.apps[a.id]?'checked':''} onchange="toggleEngApp('${a.id}',this.checked)"><span style="flex:1">${a.name}</span><a href="${a.url}" target="_blank" rel="noopener" style="font-size:12px;color:var(--brand);text-decoration:none">開啟 ›</a></label>`).join('');
+  const primOpts=ENGAPPS.filter(a=>S.eng.apps[a.id]).map(a=>`<option value="${a.id}" ${S.eng.primary===a.id?'selected':''}>${a.name}</option>`).join('')||'<option>（先勾選上面的 App）</option>';
+  b.innerHTML=`
+  <div class="card setrow">
+    <h4>👤 學生資料</h4>
+    <div class="field"><label>名字</label><input type="text" value="${esc(S.student)}" onchange="S.student=this.value;save();updHead()"></div>
+    <div class="field"><label>這個階段的目標</label><input type="text" value="${esc(S.goal)}" onchange="S.goal=this.value;save();updHead()"></div>
+  </div>
+
+  <div class="card setrow">
+    <h4>🔤 每日英語忍術</h4>
+    <p>勾選要納入「每日忍術」的英語 App。日曆會在「今日」最上方顯示，並自動讀取單字待複習數量（需和英語 App 用同一個網址開啟）。</p>
+    <div style="margin-top:8px">${engChecks}</div>
+    <div class="field"><label>主要開啟的 App（點「開啟」直接進入）</label><select onchange="S.eng.primary=this.value;save();">${primOpts}</select></div>
+    <div class="field"><label>給孩子的一句話</label><input type="text" value="${esc(S.eng.note||'')}" onchange="S.eng.note=this.value;save()"></div>
+    <a class="btn ghost mt" href="${HUB}" target="_blank" rel="noopener" style="text-align:center;text-decoration:none;display:block">🎓 打開英語學習入口（看跨 App 儀表板）</a>
+  </div>
+
+  <div class="card setrow">
+    <h4>💾 備份 / 還原</h4>
+    <p>資料只存在這台裝置。換手機或清除瀏覽器前，先「匯出」存成檔案。</p>
+    <div style="display:flex;gap:10px;margin-top:11px">
+      <button class="btn ghost" style="flex:1" onclick="exportData()">⬇️ 匯出備份</button>
+      <button class="btn ghost" style="flex:1" onclick="document.getElementById('impf').click()">⬆️ 匯入</button>
+    </div>
+    <input type="file" id="impf" accept="application/json" class="hide" onchange="importData(this)">
+  </div>
+
+  <div class="card setrow">
+    <h4>🧰 其他</h4>
+    <label class="chk"><input type="checkbox" id="onbk" onchange="localStorage.setItem('sp_onb',this.checked?'':'1')"><span>下次開啟顯示新手引導</span></label>
+    <button class="btn ghost mt" onclick="if(confirm('回到預設的示範計畫？你目前的自訂內容會被覆蓋（可先匯出備份）。')){S=seed();save();go('today');}">↺ 重設為示範計畫</button>
+    <button class="btn ghost mt" style="color:var(--cram)" onclick="if(confirm('清空全部資料（作息、進度、打勾）？此動作無法復原。')){localStorage.removeItem(KEY);S=seed();save();go('today');}">🗑️ 清空全部資料</button>
+  </div>
+
+  <div class="tip">
+    <b>💡 給家長的使用建議（忍者修行版）</b><br>
+    ①「修行表」先把每週固定的<b>道場(補習)</b>和<b>修行(自習)</b>時段排好，之後每天會自動帶出。<br>
+    ② 修行時段記得<b>指定科目</b>，孩子讀完按「⚡習得忍術」就會累積「忍者等級」分頁的進度。<br>
+    ③ 每天讓孩子自己<b>完成任務打勾</b>，連續達成會累積 🔥 <b>火之意志</b>；總進度越高，忍者等級越高（學生→下忍→中忍→上忍→火影）。<br>
+    ④ 暑假建議<b>複習 : 預習 ≈ 6:4</b>，先把國一觀念（尤其數學）補穩，再輕鬆預習國二。<br>
+    ⑤ 每天英語忍術 15–20 分鐘，長期比考前抱佛腳更有效。
+  </div>`;
+  const on=document.getElementById('onbk'); if(on)on.checked=false;
+}
+function toggleEngApp(id,v){S.eng.apps[id]=v; if(!v&&S.eng.primary===id){const f=ENGAPPS.find(a=>S.eng.apps[a.id]);S.eng.primary=f?f.id:null;} save();renderSet();}
+function updHead(){const rk=ninjaRank(overallPct());document.getElementById('hsub').innerHTML = (S.student?esc(S.student)+'・':'')+`忍者等級：<b style="color:var(--brand)">${rk.e} ${rk.n}</b>`;}
+function exportData(){const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download='學習計畫備份_'+ymd(new Date())+'.json';a.click();URL.revokeObjectURL(u);}
+function importData(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const j=JSON.parse(r.result);if(!j.subjects)throw 0;S=j;save();alert('匯入成功 ✓');go('today');}catch(e){alert('檔案格式不正確');}};r.readAsText(f);inp.value='';}
+
+/* ================= Modal：固定時段 ================= */
+let mDays=[], mType='self';
+function openBlock(r){
+  const isNew=!r; r=r||{days:[new Date().getDay()||1],start:'09:00',end:'10:00',type:'self',subjectId:null,chapter:null,label:'',note:''};
+  mDays=[...r.days]; mType=r.type;
+  mLblDirty=false; // 打開時標題視為自動；改類型/科目會連動，除非你手動打字
+  const opts=subjOptions(r.subjectId);
+  sheet(`<h3>${isNew?'新增固定時段':'編輯固定時段'}</h3>
+    <div class="fld"><label>星期（可多選）</label><div class="daypick" id="dp">${[1,2,3,4,5,6,0].map(d=>`<button data-d="${d}" class="${mDays.includes(d)?'on':''}" onclick="tglDay(${d},this)">${DAYW[d].replace('週','')}</button>`).join('')}</div></div>
+    <div class="row2"><div class="fld"><label>開始</label><input type="time" id="mst" value="${r.start}"></div><div class="fld"><label>結束</label><input type="time" id="men" value="${r.end}"></div></div>
+    <div class="fld"><label>類型</label><div class="typepick" id="tp">${Object.entries(TYPES).map(([k,t])=>`<button data-t="${k}" class="${mType===k?'on':''}" onclick="pickType('${k}',this)"><span class="ti">${t.i}</span>${t.n}</button>`).join('')}</div></div>
+    <div class="fld" id="subjWrap"><label>修行科目（選了會顯示進度、可按「⚡習得忍術」）</label><select id="msub" onchange="onSubjChange()">${opts}</select></div>
+    <div class="fld" id="chapWrap"><label>章節（把這次要讀的章節拉進來，完成任務即標記習得）</label><select id="mchap" onchange="syncTitle()">${chapOptions(r.subjectId,r.chapter)}</select></div>
+    <div class="fld"><label>標題（會依類型／科目／章節自動帶入，也可自行修改）</label><input type="text" id="mlbl" value="${esc(r.label||autoTitleFrom(r.type,r.subjectId,r.chapter))}" oninput="lblEdited()" placeholder="例：數學補習班 / 修行・理化預習"></div>
+    <div class="fld"><label>備註</label><input type="text" id="mnote" value="${esc(r.note||'')}" placeholder="選填"></div>
+    <div class="sbtns">${isNew?'':`<button class="rm" onclick="delRoutine('${r.id}')">刪除</button>`}<button class="cc" onclick="closeOv()">取消</button><button class="ok" onclick="saveBlock('${isNew?'':r.id}')">儲存</button></div>`);
+  syncSubjWrap();
+}
+function tglDay(d,el){if(mDays.includes(d))mDays=mDays.filter(x=>x!==d);else mDays.push(d);el.classList.toggle('on');}
+function pickType(k,el){mType=k;document.querySelectorAll('#tp button').forEach(b=>b.classList.toggle('on',b.dataset.t===k));syncSubjWrap();syncTitle();}
+function syncSubjWrap(){const show=(mType==='self'||mType==='exam');['subjWrap','chapWrap'].forEach(id=>{const w=document.getElementById(id);if(w)w.style.display=show?'block':'none';});}
+/* 章節下拉（把該科所有章節拉進來）*/
+function chapOptions(sid,sel){
+  if(!sid)return '<option value="">（先選科目，才會列出章節）</option>';
+  const s=subjOf(sid); if(!s||!s.chaps.length)return '<option value="">— 此科尚無章節 —</option>';
+  return '<option value="">— 整體／不指定章節 —</option>'+s.chaps.map(c=>`<option value="${esc(c.n)}" ${sel===c.n?'selected':''}>${c.done?'✓ ':''}${esc(c.n)}</option>`).join('');
+}
+/* 類型/科目/章節 → 自動標題（除非使用者手動改過標題）*/
+let mLblDirty=false;
+function autoTitleFrom(type,sid,chap){const sub=sid?subjOf(sid):null;const cx=chap?' '+chap:'';
+  return type==='self'?(sub?'修行・'+sub.name+cx:'修行(自習)')
+    :type==='cram'?(sub?'道場・'+sub.name+cx:'道場(補習)')
+    :type==='eng'?'每日英語忍術'
+    :type==='exam'?(sub?'試煉・'+sub.name+cx:'試煉(考試)')
+    :type==='rest'?'休息':'';}
+function autoTitle(){return autoTitleFrom(mType,val('msub'),val('mchap'));}
+function syncTitle(){ if(mLblDirty)return; const el=document.getElementById('mlbl'); if(el)el.value=autoTitle(); }
+function onSubjChange(){ const mc=document.getElementById('mchap'); if(mc)mc.innerHTML=chapOptions(val('msub'),''); syncTitle(); }
+function lblEdited(){ mLblDirty=true; }
+function saveBlock(id){
+  if(!mDays.length){alert('請至少選一個星期');return;}
+  const o={days:[...mDays].sort(),start:val('mst'),end:val('men'),type:mType,subjectId:val('msub')||null,chapter:val('mchap')||null,label:val('mlbl').trim(),note:val('mnote').trim()};
+  if(id){const r=S.routine.find(x=>x.id===id);Object.assign(r,o);} else {S.routine.push({id:nid('r'),...o});}
+  save();closeOv();TAB==='today'?renderToday():renderWeek();
+}
+function delRoutine(id){if(!confirm('刪除這個固定時段？'))return;S.routine=S.routine.filter(x=>x.id!==id);save();closeOv();TAB==='today'?renderToday():renderWeek();}
+
+/* ================= Modal：當天單次事件 ================= */
+function openEvent(e,key){
+  key=key||ymd(cur); const isNew=!e;
+  e=e||{start:'',end:'',type:'custom',subjectId:null,chapter:null,label:'',note:''};
+  mType=e.type;
+  mLblDirty=false;
+  const opts=subjOptions(e.subjectId);
+  const dd=key.split('-');
+  sheet(`<h3>${isNew?'新增當天事件':'編輯事件'}</h3>
+    <p style="text-align:center;color:var(--muted);font-size:12.5px;margin:-8px 0 14px">${+dd[1]}月${+dd[2]}日 這一天</p>
+    <div class="row2"><div class="fld"><label>開始</label><input type="time" id="mst" value="${e.start}"></div><div class="fld"><label>結束</label><input type="time" id="men" value="${e.end}"></div></div>
+    <div class="fld"><label>類型</label><div class="typepick" id="tp">${Object.entries(TYPES).map(([k,t])=>`<button data-t="${k}" class="${mType===k?'on':''}" onclick="pickType('${k}',this)"><span class="ti">${t.i}</span>${t.n}</button>`).join('')}</div></div>
+    <div class="fld" id="subjWrap"><label>科目（選填）</label><select id="msub" onchange="onSubjChange()">${opts}</select></div>
+    <div class="fld" id="chapWrap"><label>章節（選填，把要讀的章節拉進來）</label><select id="mchap" onchange="syncTitle()">${chapOptions(e.subjectId,e.chapter)}</select></div>
+    <div class="fld"><label>標題（會依類型／科目／章節自動帶入，也可自行修改）</label><input type="text" id="mlbl" value="${esc(e.label||autoTitleFrom(e.type,e.subjectId,e.chapter))}" oninput="lblEdited()" placeholder="例：模擬考 / 試煉・數學"></div>
+    <div class="fld"><label>備註</label><input type="text" id="mnote" value="${esc(e.note||'')}" placeholder="選填"></div>
+    <div class="sbtns">${isNew?'':`<button class="rm" onclick="delEvent('${key}','${e.id}');closeOv()">刪除</button>`}<button class="cc" onclick="closeOv()">取消</button><button class="ok" onclick="saveEvent('${key}','${isNew?'':e.id}')">儲存</button></div>`);
+  syncSubjWrap();
+}
+function saveEvent(key,id){
+  const o={start:val('mst'),end:val('men'),type:mType,subjectId:val('msub')||null,chapter:val('mchap')||null,label:val('mlbl').trim(),note:val('mnote').trim()};
+  if(!o.label&&!o.subjectId){alert('請輸入標題或選科目');return;}
+  if(!S.events[key])S.events[key]=[];
+  if(id){const e=S.events[key].find(x=>x.id===id);Object.assign(e,o);} else {S.events[key].push({id:nid('e'),...o});}
+  save();closeOv();cur=new Date(key+'T00:00:00');go('today');
+}
+
+/* ================= Modal：科目 ================= */
+function openSubject(){editSubject(null);}
+function openSubjectFor(grade){editSubject(null,grade);}
+function editSubject(sid,defGrade){
+  const isNew=!sid; const s=sid?subjOf(sid):{name:'',grade:defGrade||'國二',tag:'',color:'#4f7cff',chaps:[]};
+  const cols=['#e0555a','#f0932b','#22a06b','#16a085','#2d98da','#4f7cff','#8e5a3c','#a55eea','#db2777'];
+  window.__grade=s.grade; window.__col=s.color;
+  const gbtn=YEARS.map(y=>`<button class="${s.grade===y?'on':''}" onclick="this.parentNode.querySelectorAll('button').forEach(b=>b.classList.remove('on'));this.classList.add('on');window.__grade='${y}'"><span class="ti">${{'國一':'1️⃣','國二':'2️⃣','國三':'3️⃣'}[y]}</span>${y}</button>`).join('');
+  const tags=[['','無'],['複習','🔁 複習'],['預習','🌱 預習'],['進行中','📖 正在上']];
+  sheet(`<h3>${isNew?'新增科目':'編輯科目'}</h3>
+    <div class="fld"><label>科目名稱</label><input type="text" id="snm" value="${esc(s.name)}" placeholder="例：數學 / 自然（理化）"></div>
+    <div class="fld"><label>年級</label><div class="typepick">${gbtn}</div></div>
+    <div class="fld"><label>標記（可選，顯示在科目上）</label><select id="stag">${tags.map(t=>`<option value="${t[0]}" ${s.tag===t[0]?'selected':''}>${t[1]}</option>`).join('')}</select></div>
+    <div class="fld"><label>顏色</label><div class="daypick" id="colp">${cols.map(c=>`<button data-c="${c}" style="background:${c};color:#fff;border-color:${c};${s.color===c?'outline:3px solid var(--ink);outline-offset:1px':''}" onclick="document.querySelectorAll('#colp button').forEach(b=>b.style.outline='none');this.style.outline='3px solid var(--ink)';this.style.outlineOffset='1px';window.__col=this.dataset.c">${s.color===c?'✓':''}</button>`).join('')}</div></div>
+    <div class="fld"><label>章節（一行一個；之後可到「進度」逐章勾選）</label><textarea id="schaps" placeholder="第1課&#10;第2課&#10;…">${isNew?'':s.chaps.map(c=>c.n).join('\n')}</textarea></div>
+    <div class="sbtns">${isNew?'':`<button class="rm" onclick="delSubject('${sid}');closeOv()">刪除</button>`}<button class="cc" onclick="closeOv()">取消</button><button class="ok" onclick="saveSubject('${isNew?'':sid}')">儲存</button></div>`);
+}
+function saveSubject(sid){
+  const name=val('snm').trim(); if(!name){alert('請輸入科目名稱');return;}
+  const grade=window.__grade||'國二', tag=val('stag'), color=window.__col||'#4f7cff';
+  const lines=val('schaps').split('\n').map(x=>x.trim()).filter(Boolean);
+  if(sid){const s=subjOf(sid);s.name=name;s.grade=grade;s.tag=tag;s.color=color;
+    const old=s.chaps; s.chaps=lines.map(n=>{const p=old.find(c=>c.n===n);return{n,done:p?p.done:false};});
+  } else { S.subjects.push({id:nid('s'),name,grade,tag,color,cat:null,chaps:lines.map(n=>({n,done:false}))}); }
+  save();closeOv();openSub={};openYear[grade]=true;go('prog');
+}
+
+/* ================= 共用 ================= */
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+function val(id){const e=document.getElementById(id);return e?e.value:'';}
+function sheet(html){document.getElementById('sheet').innerHTML=html;document.getElementById('ov').classList.add('show');}
+function closeOv(){document.getElementById('ov').classList.remove('show');}
+function toast(msg){let t=document.getElementById('_toast');if(!t){t=document.createElement('div');t.id='_toast';t.style.cssText='position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:rgba(20,26,45,.92);color:#fff;padding:10px 18px;border-radius:20px;font-size:13.5px;font-weight:700;z-index:99;transition:.3s;opacity:0';document.body.appendChild(t);}t.textContent=msg;t.style.opacity='1';clearTimeout(t._x);t._x=setTimeout(()=>t.style.opacity='0',1500);}
+
+/* ================= 啟動 ================= */
+updHead(); go('month');
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}
+
+/* 新手引導 */
+(function(){ if(localStorage.getItem('sp_onb'))return;
+  setTimeout(()=>{ sheet(`<h3>🍥 歡迎來到火影修行計畫</h3>
+    <div style="font-size:14px;line-height:1.9;color:var(--ink)">
+    這是幫「<b>${esc(S.student)}</b>」忍者規劃<b>國中三年</b>修行的手帳（暑假可先複習國一、預習國二）。完成任務會升等，衝上<b>火影</b>吧！
+    <div style="margin:12px 0;display:flex;flex-direction:column;gap:9px">
+      <div style="display:flex;gap:11px;align-items:flex-start"><span style="font-size:20px">📆</span><div><b>任務曆</b>：整月一眼看完，色點標出每天的任務，點日期看細節</div></div>
+      <div style="display:flex;gap:11px;align-items:flex-start"><span style="font-size:20px">📅</span><div><b>今日</b>：每天的道場、修行、英語忍術，完成自己打勾 ✓</div></div>
+      <div style="display:flex;gap:11px;align-items:flex-start"><span style="font-size:20px">🗓️</span><div><b>修行表</b>：排每週固定的道場(補習)／修行(自習)時段</div></div>
+      <div style="display:flex;gap:11px;align-items:flex-start"><span style="font-size:20px">🥷</span><div><b>忍者等級</b>：國一～國三 七大科章節，習得越多、等級越高</div></div>
+      <div style="display:flex;gap:11px;align-items:flex-start"><span style="font-size:20px">🔤</span><div><b>英語忍術</b>：接上你們家的英語 App，每天一點不遺忘</div></div>
+    </div>
+    我已先放了一份<b>示範修行</b>，直接改成自己的就好！</div>
+    <div class="sbtns" style="margin-top:16px"><button class="ok" onclick="localStorage.setItem('sp_onb','1');closeOv()">開始修行 ▶</button></div>`);
+  },400);
+})();
+</script>
+</body>
+</html>
