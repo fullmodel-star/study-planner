@@ -217,6 +217,11 @@
   .tstat .chk i{font-size:11px;font-style:normal;padding:2px 8px;border-radius:20px;background:var(--bg);color:var(--muted);font-weight:700}
   .tstat.alldone .chk i{background:rgba(255,255,255,.18);color:#fff}
   .tstat .chk i.ok{color:var(--self)}.tstat.alldone .chk i.ok{color:#fff}
+  .tstat .allbtn{margin-top:9px;border:0;border-radius:10px;padding:8px 14px;font-size:12.5px;font-weight:800;cursor:pointer;font-family:inherit;background:var(--self);color:#fff}
+  .qgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+  .qgrid button{display:flex;flex-direction:column;align-items:center;gap:5px;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:14px;padding:15px 8px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit}
+  .qgrid button:active{background:rgba(255,106,26,.12);border-color:var(--brand)}
+  .qgrid button .qi{font-size:26px;line-height:1}
   .rankcard{display:flex;align-items:center;gap:13px;padding:14px 16px;margin-top:14px;border-radius:16px;
     background:linear-gradient(135deg,#1b2a4a,#31456e);color:#fff;box-shadow:var(--sh2);border:2px solid var(--brand);position:relative;overflow:hidden}
   .rankcard .rke{font-size:34px;line-height:1;flex:0 0 auto}
@@ -348,6 +353,7 @@ const YEARS=['國一','國二','國三'];
 const SUBORD=['國文','英語','數學','自然','歷史','地理','公民'];
 const SUBJ_CODE={國文:'gw',英語:'en',數學:'ma',自然:'na',歷史:'his',地理:'geo',公民:'civ'};
 const SUBJ_COLOR={國文:'#e0555a',英語:'#4f7cff',數學:'#f0932b',自然:'#22a06b',歷史:'#8e5a3c',地理:'#2d98da',公民:'#a55eea'};
+const SUBJ_EMOJI={國文:'📖',英語:'🔤',數學:'📐',自然:'🧪',歷史:'🏛️',地理:'🌏',公民:'⚖️'};
 const NAT_NAME={'國一':'自然（生物）','國二':'自然（理化）','國三':'自然（理化・地科）'};
 const CURRIC={
  '國一':{
@@ -380,7 +386,7 @@ function frameworkSubjects(){
   const subjects=[];
   YEARS.forEach((yr,yi)=>SUBORD.forEach(sj=>{
     subjects.push({id:'g'+(yi+1)+'_'+SUBJ_CODE[sj], cat:sj, grade:yr,
-      name: sj==='自然'?NAT_NAME[yr]:sj,
+      name: sj==='自然'?NAT_NAME[yr]:sj, emoji:SUBJ_EMOJI[sj]||'',
       tag: yr==='國一'?'複習': yr==='國二'?'預習':'',
       color:SUBJ_COLOR[sj], chaps:ch(CURRIC[yr][sj])});
   }));
@@ -418,13 +424,19 @@ function loadDemo(){
 /* ---------- 載入 / 儲存 ---------- */
 let S = load();
 function load(){try{const j=JSON.parse(localStorage.getItem(KEY));if(j&&j.subjects)return norm(j);}catch(e){} return seed();}
-function norm(j){ j.subjects=j.subjects||[]; j.routine=j.routine||[]; j.events=j.events||{}; j.checks=j.checks||{};
+function norm(j){ j.subjects=j.subjects||[]; j.routine=j.routine||[]; j.events=j.events||{}; j.checks=j.checks||{}; j.recentSubj=j.recentSubj||[];
   j.eng=j.eng||{}; j.eng.apps=j.eng.apps||{}; if(!('note'in j.eng))j.eng.note=''; if(!('primary'in j.eng))j.eng.primary=null;
   j.subjects.forEach(s=>{
     s.chaps=(s.chaps||[]).map(c=>typeof c==='string'?{n:c,done:false}:c);
     if(!s.grade){ s.grade = s.group==='預習'?'國二' : '國一'; if(s.group&&!('tag'in s))s.tag=s.group; }
     if(!('tag'in s))s.tag='';
+    if(!('emoji'in s))s.emoji=SUBJ_EMOJI[s.cat]||'';
   }); return j; }
+/* 最近用過的科目 */
+function pushRecent(id){ if(!id)return; S.recentSubj=[id,...(S.recentSubj||[]).filter(x=>x!==id)].slice(0,8); }
+function recentSubjChips(){ const ids=(S.recentSubj||[]).filter(id=>subjOf(id)).slice(0,5); if(!ids.length)return '';
+  return `<div class="dur" style="margin:0 0 7px"><span>最近</span>${ids.map(id=>{const s=subjOf(id);return `<button type="button" onclick="pickSubj('${id}')">${s.emoji?s.emoji+' ':''}${esc(s.name)}</button>`;}).join('')}</div>`; }
+function pickSubj(id){ const el=document.getElementById('msub'); if(el){el.value=id; onSubjChange();} }
 function save(){localStorage.setItem(KEY,JSON.stringify(S));}
 
 /* ---------- 日期工具 ---------- */
@@ -438,11 +450,11 @@ function subjOptions(selId){
   ['國一','國二','國三'].forEach(y=>{
     const arr=S.subjects.filter(s=>s.grade===y);
     if(!arr.length)return;
-    h+=`<optgroup label="${y}">`+arr.map(s=>`<option value="${s.id}" ${selId===s.id?'selected':''}>${esc(s.name)}${s.tag?'（'+s.tag+'）':''}</option>`).join('')+`</optgroup>`;
+    h+=`<optgroup label="${y}">`+arr.map(s=>`<option value="${s.id}" ${selId===s.id?'selected':''}>${s.emoji?s.emoji+' ':''}${esc(s.name)}${s.tag?'（'+s.tag+'）':''}</option>`).join('')+`</optgroup>`;
   });
   // 沒有年級的（自訂）
   const other=S.subjects.filter(s=>!['國一','國二','國三'].includes(s.grade));
-  if(other.length)h+=`<optgroup label="其他">`+other.map(s=>`<option value="${s.id}" ${selId===s.id?'selected':''}>${esc(s.name)}</option>`).join('')+`</optgroup>`;
+  if(other.length)h+=`<optgroup label="其他">`+other.map(s=>`<option value="${s.id}" ${selId===s.id?'selected':''}>${s.emoji?s.emoji+' ':''}${esc(s.name)}</option>`).join('')+`</optgroup>`;
   return h;
 }
 /* ---------- 忍者等級（依總進度）---------- */
@@ -469,7 +481,21 @@ function go(t){TAB=t;
 }
 function shiftDay(n){cur.setDate(cur.getDate()+n);renderToday();}
 function jumpToday(){cur=new Date();cur.setHours(0,0,0,0);renderToday();}
-function onFab(){ if(TAB==='week'){openBlock();} else {openEvent();} }
+function onFab(){ if(TAB==='week'){openBlock();} else {quickAdd();} }
+/* 快速任務範本：選一下就帶入類型+科目，只要調時間 */
+const QTPL=[['📐','數學自習','self','數學'],['🔤','英語自習','self','英語'],['🧪','自然自習','self','自然'],['📖','國文自習','self','國文'],['🥋','補習','cram',null],['⚔️','考試/模擬考','exam',null],['✨','自訂','custom',null]];
+function quickAdd(){
+  sheet(`<h3>快速新增任務</h3>
+    <p style="text-align:center;color:var(--muted);font-size:12.5px;margin:-6px 0 14px">選一個範本，帶入類型與科目，再調時間就好</p>
+    <div class="qgrid">${QTPL.map((t,i)=>`<button type="button" onclick="quickPick(${i})"><span class="qi">${t[0]}</span>${t[1]}</button>`).join('')}</div>
+    <div class="sbtns" style="margin-top:14px"><button class="cc" onclick="closeOv()">取消</button></div>`);
+}
+function quickPick(i){
+  const t=QTPL[i]; closeOv();
+  let sid=null;
+  if(t[3]){ const m=S.subjects.filter(s=>s.cat===t[3]); sid=(m.find(s=>s.grade==='國二')||m[0]); sid=sid?sid.id:null; }
+  openEvent(null, ymd(cur), {type:t[2], subjectId:sid});
+}
 
 /* ---------- 取得某日的所有區塊 ---------- */
 function blocksFor(d){
@@ -544,7 +570,7 @@ function renderToday(){
   renderEng(d,key);
   document.getElementById('todayCount').textContent = blks.length? `任務 ${done}/${blks.length}` : '';
   const list=document.getElementById('taskList');
-  if(!blks.length){ list.innerHTML='<div class="card empty">今天還沒有任務 🍃<br>用右下 <b>＋</b> 發布當天任務，或到「修行表」排每週固定修行。</div>'; return; }
+  if(!blks.length){ list.innerHTML=`<div class="card empty">今天還沒有任務 🍃<br>用右下 <b>＋</b> 發布當天任務，或到「修行表」排每週固定修行。<div class="dur" style="justify-content:center;margin-top:12px"><button type="button" onclick="copyDayFull(-1)">📋 複製昨天</button><button type="button" onclick="copyDayFull(-7)">📋 複製上週同天</button></div></div>`; return; }
   list.innerHTML=blks.map(b=>taskCard(b,key)).join('');
 }
 /* 今日完成儀表板：把當天所有任務＋每日英語一起算，確認今天都做完 */
@@ -562,8 +588,22 @@ function renderTodayStatus(d,key,blks,doneBlk){
     <div class="ti"><b>${all?'🎉 今日修行全部完成！':`今日完成度 ${pct}%`}</b>
       <span>${all?'太強了，火之意志 +1，明天繼續 🔥':`還有 <b>${total-done}</b> 項任務要完成，衝吧！`}</span>
       <div class="chk">${chips}</div>
+      ${all?'':`<button type="button" class="allbtn" onclick="markAllToday('${key}')">✅ 一鍵全部完成</button>`}
     </div>
   </div>`;
+}
+function markAllToday(key){
+  const blks=blocksFor(cur); blks.forEach(b=>setChecked(key,b._k,true));
+  if(ENGAPPS.some(a=>S.eng.apps[a.id])) setChecked(key,'eng_'+key,true);
+  renderToday(); toast('🎉 今日任務全部完成！');
+}
+/* 複製某天的安排到今天（成為當天事件）*/
+function copyDayFull(off){
+  const src=new Date(cur); src.setDate(src.getDate()+off);
+  const blks=blocksFor(src); if(!blks.length){toast('那天沒有安排可複製');return;}
+  const tk=ymd(cur); if(!S.events[tk])S.events[tk]=[];
+  blks.forEach(b=>S.events[tk].push({id:nid('e'),start:b.start,end:b.end,type:b.type,subjectId:b.subjectId||null,chapter:b.chapter||null,label:b.label||'',note:b.note||''}));
+  save(); renderToday(); toast('已複製 '+blks.length+' 項到今天');
 }
 function taskCard(b,key){
   const T=TYPES[b.type]||TYPES.custom;
@@ -713,7 +753,7 @@ function subjCard(s){
   return `<div class="card subj">
     <div class="sh" onclick="openSub['${s.id}']=!openSub['${s.id}'];renderProg()">
       <span class="dot" style="background:${s.color}"></span>
-      <span class="snm">${esc(s.name)}</span>
+      <span class="snm">${s.emoji?s.emoji+' ':''}${esc(s.name)}</span>
       ${tagB}
       <span class="pct">${pct}% <small style="font-weight:700;opacity:.7">${dd}/${tt}</small></span>
     </div>
@@ -832,7 +872,7 @@ function openBlock(r){
     ${timeChips()}
     <div class="dur"><span>時長</span><button type="button" onclick="setEndFromStart(30)">30分</button><button type="button" onclick="setEndFromStart(60)">1小時</button><button type="button" onclick="setEndFromStart(90)">1.5小時</button><button type="button" onclick="setEndFromStart(120)">2小時</button></div>
     <div class="fld" style="margin-top:13px"><label>類型</label><div class="typepick" id="tp">${Object.entries(TYPES).map(([k,t])=>`<button data-t="${k}" class="${mType===k?'on':''}" onclick="pickType('${k}',this)"><span class="ti">${t.i}</span>${t.n}</button>`).join('')}</div></div>
-    <div class="fld" id="subjWrap"><label>修行科目（選了會顯示進度、可按「⚡習得忍術」）</label><select id="msub" onchange="onSubjChange()">${opts}</select></div>
+    <div class="fld" id="subjWrap"><label>修行科目（選了會顯示進度、可按「⚡習得忍術」）</label>${recentSubjChips()}<select id="msub" onchange="onSubjChange()">${opts}</select></div>
     <div class="fld" id="chapWrap"><label>章節（把這次要讀的章節拉進來，完成任務即標記習得）</label><select id="mchap" onchange="syncTitle()">${chapOptions(r.subjectId,r.chapter)}</select></div>
     <div class="fld"><label>標題（會依類型／科目／章節自動帶入，也可自行修改）</label><input type="text" id="mlbl" value="${esc(r.label||autoTitleFrom(r.type,r.subjectId,r.chapter))}" oninput="lblEdited()" placeholder="例：數學補習班 / 修行・理化預習"></div>
     <div class="fld"><label>備註</label><input type="text" id="mnote" value="${esc(r.note||'')}" placeholder="選填，或點下方常用備註">${noteChips()}</div>
@@ -863,15 +903,16 @@ function lblEdited(){ mLblDirty=true; }
 function saveBlock(id){
   if(!mDays.length){alert('請至少選一個星期');return;}
   const o={days:[...mDays].sort(),start:timeVal('st'),end:timeVal('en'),type:mType,subjectId:val('msub')||null,chapter:val('mchap')||null,label:val('mlbl').trim(),note:val('mnote').trim()};
+  pushRecent(o.subjectId);
   if(id){const r=S.routine.find(x=>x.id===id);Object.assign(r,o);} else {S.routine.push({id:nid('r'),...o});}
   save();closeOv();TAB==='today'?renderToday():renderWeek();
 }
 function delRoutine(id){if(!confirm('刪除這個固定時段？'))return;S.routine=S.routine.filter(x=>x.id!==id);save();closeOv();TAB==='today'?renderToday():renderWeek();}
 
 /* ================= Modal：當天單次事件 ================= */
-function openEvent(e,key){
+function openEvent(e,key,def){
   key=key||ymd(cur); const isNew=!e;
-  e=e||{start:'09:00',end:'10:00',type:'custom',subjectId:null,chapter:null,label:'',note:''};
+  e=e||Object.assign({start:'09:00',end:'10:00',type:'custom',subjectId:null,chapter:null,label:'',note:''}, def||{});
   mType=e.type;
   mLblDirty=false;
   const opts=subjOptions(e.subjectId);
@@ -882,7 +923,7 @@ function openEvent(e,key){
     ${timeChips()}
     <div class="dur"><span>時長</span><button type="button" onclick="setEndFromStart(30)">30分</button><button type="button" onclick="setEndFromStart(60)">1小時</button><button type="button" onclick="setEndFromStart(90)">1.5小時</button><button type="button" onclick="setEndFromStart(120)">2小時</button></div>
     <div class="fld" style="margin-top:13px"><label>類型</label><div class="typepick" id="tp">${Object.entries(TYPES).map(([k,t])=>`<button data-t="${k}" class="${mType===k?'on':''}" onclick="pickType('${k}',this)"><span class="ti">${t.i}</span>${t.n}</button>`).join('')}</div></div>
-    <div class="fld" id="subjWrap"><label>科目（選填）</label><select id="msub" onchange="onSubjChange()">${opts}</select></div>
+    <div class="fld" id="subjWrap"><label>科目（選填）</label>${recentSubjChips()}<select id="msub" onchange="onSubjChange()">${opts}</select></div>
     <div class="fld" id="chapWrap"><label>章節（選填，把要讀的章節拉進來）</label><select id="mchap" onchange="syncTitle()">${chapOptions(e.subjectId,e.chapter)}</select></div>
     <div class="fld"><label>標題（會依類型／科目／章節自動帶入，也可自行修改）</label><input type="text" id="mlbl" value="${esc(e.label||autoTitleFrom(e.type,e.subjectId,e.chapter))}" oninput="lblEdited()" placeholder="例：模擬考 / 試煉・數學"></div>
     <div class="fld"><label>備註</label><input type="text" id="mnote" value="${esc(e.note||'')}" placeholder="選填，或點下方常用備註">${noteChips()}</div>
@@ -892,6 +933,7 @@ function openEvent(e,key){
 function saveEvent(key,id){
   const o={start:timeVal('st'),end:timeVal('en'),type:mType,subjectId:val('msub')||null,chapter:val('mchap')||null,label:val('mlbl').trim(),note:val('mnote').trim()};
   if(!o.label&&!o.subjectId){alert('請輸入標題或選科目');return;}
+  pushRecent(o.subjectId);
   if(!S.events[key])S.events[key]=[];
   if(id){const e=S.events[key].find(x=>x.id===id);Object.assign(e,o);} else {S.events[key].push({id:nid('e'),...o});}
   save();closeOv();cur=new Date(key+'T00:00:00');go('today');
@@ -903,11 +945,13 @@ function openSubjectFor(grade){editSubject(null,grade);}
 function editSubject(sid,defGrade){
   const isNew=!sid; const s=sid?subjOf(sid):{name:'',grade:defGrade||'國二',tag:'',color:'#4f7cff',chaps:[]};
   const cols=['#e0555a','#f0932b','#22a06b','#16a085','#2d98da','#4f7cff','#8e5a3c','#a55eea','#db2777'];
+  const emos=['📖','🔤','📐','🧪','⚗️','🧬','🏛️','🌏','⚖️','🎨','🎵','🏃','💻','📚','✏️','🔬'];
   window.__grade=s.grade; window.__col=s.color;
   const gbtn=YEARS.map(y=>`<button class="${s.grade===y?'on':''}" onclick="this.parentNode.querySelectorAll('button').forEach(b=>b.classList.remove('on'));this.classList.add('on');window.__grade='${y}'"><span class="ti">${{'國一':'1️⃣','國二':'2️⃣','國三':'3️⃣'}[y]}</span>${y}</button>`).join('');
   const tags=[['','無'],['複習','🔁 複習'],['預習','🌱 預習'],['進行中','📖 正在上']];
   sheet(`<h3>${isNew?'新增科目':'編輯科目'}</h3>
     <div class="fld"><label>科目名稱</label><input type="text" id="snm" value="${esc(s.name)}" placeholder="例：數學 / 自然（理化）"></div>
+    <div class="fld"><label>圖示 emoji（可留空，點下方選）</label><input type="text" id="semoji" value="${esc(s.emoji||'')}" maxlength="4" placeholder="例：📐" style="text-align:center;font-size:18px"><div class="dur" style="margin-top:7px">${emos.map(e=>`<button type="button" onclick="document.getElementById('semoji').value='${e}'">${e}</button>`).join('')}</div></div>
     <div class="fld"><label>年級</label><div class="typepick">${gbtn}</div></div>
     <div class="fld"><label>標記（可選，顯示在科目上）</label><select id="stag">${tags.map(t=>`<option value="${t[0]}" ${s.tag===t[0]?'selected':''}>${t[1]}</option>`).join('')}</select></div>
     <div class="fld"><label>顏色</label><div class="daypick" id="colp">${cols.map(c=>`<button data-c="${c}" style="background:${c};color:#fff;border-color:${c};${s.color===c?'outline:3px solid var(--ink);outline-offset:1px':''}" onclick="document.querySelectorAll('#colp button').forEach(b=>b.style.outline='none');this.style.outline='3px solid var(--ink)';this.style.outlineOffset='1px';window.__col=this.dataset.c">${s.color===c?'✓':''}</button>`).join('')}</div></div>
@@ -916,11 +960,11 @@ function editSubject(sid,defGrade){
 }
 function saveSubject(sid){
   const name=val('snm').trim(); if(!name){alert('請輸入科目名稱');return;}
-  const grade=window.__grade||'國二', tag=val('stag'), color=window.__col||'#4f7cff';
+  const grade=window.__grade||'國二', tag=val('stag'), color=window.__col||'#4f7cff', emoji=val('semoji').trim();
   const lines=val('schaps').split('\n').map(x=>x.trim()).filter(Boolean);
-  if(sid){const s=subjOf(sid);s.name=name;s.grade=grade;s.tag=tag;s.color=color;
+  if(sid){const s=subjOf(sid);s.name=name;s.grade=grade;s.tag=tag;s.color=color;s.emoji=emoji;
     const old=s.chaps; s.chaps=lines.map(n=>{const p=old.find(c=>c.n===n);return{n,done:p?p.done:false};});
-  } else { S.subjects.push({id:nid('s'),name,grade,tag,color,cat:null,chaps:lines.map(n=>({n,done:false}))}); }
+  } else { S.subjects.push({id:nid('s'),name,grade,tag,color,emoji,cat:null,chaps:lines.map(n=>({n,done:false}))}); }
   save();closeOv();openSub={};openYear[grade]=true;go('prog');
 }
 
