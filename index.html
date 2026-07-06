@@ -805,6 +805,17 @@ function setEndFromStart(mins){
   if(ehs)ehs.value=eh; if(ems)ems.value=em;
 }
 function onTimeChange(pfx){ if(pfx==='st'){ const s=timeVal('st'), e=timeVal('en'); if(s&&(!e||e<=s)) setEndFromStart(60); } }
+/* 常用時段一鍵套用（同時設開始+結束）*/
+function setTime(s,e){const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v;};
+  set('sth',s.slice(0,2));set('stm',s.slice(3));set('enh',e.slice(0,2));set('enm',e.slice(3));}
+/* 星期快速鍵 */
+function setDays(arr){mDays=[...arr];document.querySelectorAll('#dp button').forEach(b=>b.classList.toggle('on',mDays.includes(+b.dataset.d)));}
+/* 備註快速標籤（點一下附加）*/
+function addNote(t){const el=document.getElementById('mnote');if(!el)return;const v=el.value.trim();el.value=v?(v.split('、').includes(t)?v:v+'、'+t):t;}
+const NOTE_CHIPS=['先複習觀念','寫評量練習','訂正錯題','預習新課','背單字','整理筆記','看影片講解'];
+function noteChips(){return `<div class="dur" style="margin-top:7px"><span>常用備註</span>${NOTE_CHIPS.map(t=>`<button type="button" onclick="addNote('${t}')">${t}</button>`).join('')}</div>`;}
+const TIME_CHIPS=[['早自習','07:30','08:30'],['上午自習','09:00','11:00'],['午後','14:00','16:00'],['傍晚','16:00','17:30'],['晚上補習','19:00','21:00']];
+function timeChips(){return `<div class="dur" style="margin-top:9px"><span>常用時段</span>${TIME_CHIPS.map(t=>`<button type="button" onclick="setTime('${t[1]}','${t[2]}')">${t[0]}</button>`).join('')}</div>`;}
 
 /* ================= Modal：固定時段 ================= */
 let mDays=[], mType='self';
@@ -814,14 +825,17 @@ function openBlock(r){
   mLblDirty=false; // 打開時標題視為自動；改類型/科目會連動，除非你手動打字
   const opts=subjOptions(r.subjectId);
   sheet(`<h3>${isNew?'新增固定時段':'編輯固定時段'}</h3>
-    <div class="fld"><label>星期（可多選）</label><div class="daypick" id="dp">${[1,2,3,4,5,6,0].map(d=>`<button data-d="${d}" class="${mDays.includes(d)?'on':''}" onclick="tglDay(${d},this)">${DAYW[d].replace('週','')}</button>`).join('')}</div></div>
+    <div class="fld"><label>星期（可多選）</label>
+      <div class="dur" style="margin:0 0 7px"><button type="button" onclick="setDays([1,2,3,4,5])">平日</button><button type="button" onclick="setDays([0,6])">週末</button><button type="button" onclick="setDays([0,1,2,3,4,5,6])">每天</button><button type="button" onclick="setDays([])">清除</button></div>
+      <div class="daypick" id="dp">${[1,2,3,4,5,6,0].map(d=>`<button data-d="${d}" class="${mDays.includes(d)?'on':''}" onclick="tglDay(${d},this)">${DAYW[d].replace('週','')}</button>`).join('')}</div></div>
     <div class="row2"><div class="fld"><label>開始時間</label>${timeSelects('st',r.start)}</div><div class="fld"><label>結束時間</label>${timeSelects('en',r.end)}</div></div>
+    ${timeChips()}
     <div class="dur"><span>時長</span><button type="button" onclick="setEndFromStart(30)">30分</button><button type="button" onclick="setEndFromStart(60)">1小時</button><button type="button" onclick="setEndFromStart(90)">1.5小時</button><button type="button" onclick="setEndFromStart(120)">2小時</button></div>
     <div class="fld" style="margin-top:13px"><label>類型</label><div class="typepick" id="tp">${Object.entries(TYPES).map(([k,t])=>`<button data-t="${k}" class="${mType===k?'on':''}" onclick="pickType('${k}',this)"><span class="ti">${t.i}</span>${t.n}</button>`).join('')}</div></div>
     <div class="fld" id="subjWrap"><label>修行科目（選了會顯示進度、可按「⚡習得忍術」）</label><select id="msub" onchange="onSubjChange()">${opts}</select></div>
     <div class="fld" id="chapWrap"><label>章節（把這次要讀的章節拉進來，完成任務即標記習得）</label><select id="mchap" onchange="syncTitle()">${chapOptions(r.subjectId,r.chapter)}</select></div>
     <div class="fld"><label>標題（會依類型／科目／章節自動帶入，也可自行修改）</label><input type="text" id="mlbl" value="${esc(r.label||autoTitleFrom(r.type,r.subjectId,r.chapter))}" oninput="lblEdited()" placeholder="例：數學補習班 / 修行・理化預習"></div>
-    <div class="fld"><label>備註</label><input type="text" id="mnote" value="${esc(r.note||'')}" placeholder="選填"></div>
+    <div class="fld"><label>備註</label><input type="text" id="mnote" value="${esc(r.note||'')}" placeholder="選填，或點下方常用備註">${noteChips()}</div>
     <div class="sbtns">${isNew?'':`<button class="rm" onclick="delRoutine('${r.id}')">刪除</button>`}<button class="cc" onclick="closeOv()">取消</button><button class="ok" onclick="saveBlock('${isNew?'':r.id}')">儲存</button></div>`);
   syncSubjWrap();
 }
@@ -865,12 +879,13 @@ function openEvent(e,key){
   sheet(`<h3>${isNew?'新增當天事件':'編輯事件'}</h3>
     <p style="text-align:center;color:var(--muted);font-size:12.5px;margin:-8px 0 14px">${+dd[1]}月${+dd[2]}日 這一天</p>
     <div class="row2"><div class="fld"><label>開始時間</label>${timeSelects('st',e.start)}</div><div class="fld"><label>結束時間</label>${timeSelects('en',e.end)}</div></div>
+    ${timeChips()}
     <div class="dur"><span>時長</span><button type="button" onclick="setEndFromStart(30)">30分</button><button type="button" onclick="setEndFromStart(60)">1小時</button><button type="button" onclick="setEndFromStart(90)">1.5小時</button><button type="button" onclick="setEndFromStart(120)">2小時</button></div>
     <div class="fld" style="margin-top:13px"><label>類型</label><div class="typepick" id="tp">${Object.entries(TYPES).map(([k,t])=>`<button data-t="${k}" class="${mType===k?'on':''}" onclick="pickType('${k}',this)"><span class="ti">${t.i}</span>${t.n}</button>`).join('')}</div></div>
     <div class="fld" id="subjWrap"><label>科目（選填）</label><select id="msub" onchange="onSubjChange()">${opts}</select></div>
     <div class="fld" id="chapWrap"><label>章節（選填，把要讀的章節拉進來）</label><select id="mchap" onchange="syncTitle()">${chapOptions(e.subjectId,e.chapter)}</select></div>
     <div class="fld"><label>標題（會依類型／科目／章節自動帶入，也可自行修改）</label><input type="text" id="mlbl" value="${esc(e.label||autoTitleFrom(e.type,e.subjectId,e.chapter))}" oninput="lblEdited()" placeholder="例：模擬考 / 試煉・數學"></div>
-    <div class="fld"><label>備註</label><input type="text" id="mnote" value="${esc(e.note||'')}" placeholder="選填"></div>
+    <div class="fld"><label>備註</label><input type="text" id="mnote" value="${esc(e.note||'')}" placeholder="選填，或點下方常用備註">${noteChips()}</div>
     <div class="sbtns">${isNew?'':`<button class="rm" onclick="delEvent('${key}','${e.id}');closeOv()">刪除</button>`}<button class="cc" onclick="closeOv()">取消</button><button class="ok" onclick="saveEvent('${key}','${isNew?'':e.id}')">儲存</button></div>`);
   syncSubjWrap();
 }
