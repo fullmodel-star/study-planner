@@ -534,7 +534,7 @@ function streakDays(){
 }
 /* 章節完成度（仍顯示在進度卡，不再決定等級） */
 function overallPct(){let d=0,t=0;S.subjects.forEach(s=>{d+=s.chaps.filter(c=>c.done).length;t+=s.chaps.length;});return t?Math.round(d/t*100):0;}
-const APPNAME={planner:'火影修行',pinju:'英語拼句',biology:'學測生物',earth:'學測地科','advanced-bio':'分科生物',vocab2000:'國中2000單字',vocab1200:'國小1200單字',capqb:'會考題庫',phrase:'英語片語',gsatcore:'學測必考單字'};
+const APPNAME={planner:'火影修行',pinju:'英語拼句',biology:'學測生物',earth:'學測地科','advanced-bio':'分科生物',vocab2000:'國中2000單字',vocab1200:'國小1200單字',capqb:'會考題庫',capreview:'會考複習',phrase:'英語片語',gsatcore:'學測必考單字'};
 function jutsuHtml(){
   const w=Ninja.get(), have=new Set(w.jutsu), gained=JUTSU.filter(j=>have.has(j.id)).length;
   const cells=JUTSU.map(j=>{const on=have.has(j.id);
