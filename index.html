@@ -1263,8 +1263,12 @@ function renderStreak(){
 
 /* 英語家族今日待複習總數（單字待複習＋題庫/講義錯題，同網域才有值）*/
 function engTotalDue(){ return ENGAPPS.filter(a=>S.eng.apps[a.id]).reduce((n,a)=>n+(engStat(a).due||0),0); }
-/* 單字類且有待複習時，直接開到 App 的「今日複習」畫面（深連結）*/
-function engHref(a,due){ return (a.kind==='vocab' && due>0) ? a.url+'?review=1' : a.url; }
+/* 有待複習時直接開到 App 對應畫面（深連結）：單字→今日複習、題庫→錯題本 */
+function engHref(a,due){
+  if(a.kind==='vocab' && due>0) return a.url+'?review=1';
+  if(a.kind==='qbank' && due>0) return a.url+'?wrong=1';
+  return a.url;
+}
 /* 英語必修卡 */
 function renderEng(d,key){
   const box=document.getElementById('engBox');
@@ -1286,7 +1290,7 @@ function renderEng(d,key){
     <div class="et"><b>🔤 每日英語忍術</b><span class="tag">${ck?'今日已修得 ✓':'今日必修'}</span></div>
     <div class="em">${headline}</div>
     <div class="erow">
-      <a class="eb" href="${engHref(prim,primDue)}" target="_blank" rel="noopener">開啟 ${esc(prim.name)}${primDue?' 複習':''} ▶</a>
+      <a class="eb" href="${engHref(prim,primDue)}" target="_blank" rel="noopener">開啟 ${esc(prim.name)}${primDue?(prim.kind==='qbank'?' 錯題':prim.kind==='vocab'?' 複習':''):''} ▶</a>
       <button class="eb ${ck?'done':''}" onclick="toggleTask('${key}','${engKey}',event)">${ck?'✅ 已修得':'修行完成 ○'}</button>
     </div>
     <div class="engapps">${appRows}</div>
