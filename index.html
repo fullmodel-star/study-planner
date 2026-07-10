@@ -20,7 +20,7 @@
   :root{
     --bg:#fdf4e3;--card:#fffdf8;--ink:#2b2417;--muted:#8a7355;--line:#efe0c6;
     --brand:#ff6a1a;--brand2:#ff9a4d;--navy:#1b2a4a;
-    --cram:#e0432f;--self:#2f9e44;--eng:#2f6df0;--rest:#a08d6e;--custom:#8b5cf6;--exam:#eab308;
+    --cram:#e0432f;--self:#2f9e44;--eng:#2f6df0;--rest:#a08d6e;--custom:#8b5cf6;--exam:#eab308;--read:#0ea5a5;
     --sh:0 8px 22px rgba(120,74,20,.10),0 2px 6px rgba(120,74,20,.05);
     --sh2:0 12px 30px rgba(180,90,20,.18)}
   @media (prefers-color-scheme:dark){:root{
@@ -228,6 +228,13 @@
   .setrow label.chk{display:flex;align-items:center;gap:10px;padding:9px 0;font-size:13.5px;border-top:1px solid var(--line);cursor:pointer}
   .setrow label.chk:first-of-type{border-top:0}
   .setrow input[type=checkbox]{width:20px;height:20px;accent-color:var(--brand)}
+  .enggrp{border:1px solid var(--line);border-radius:12px;margin-top:8px;overflow:hidden;background:var(--bg)}
+  .enggrp>summary{cursor:pointer;padding:10px 12px;font-size:13.5px;font-weight:800;list-style:none;display:flex;align-items:center;gap:8px}
+  .enggrp>summary::-webkit-details-marker{display:none}
+  .enggrp>summary::before{content:'▸';color:var(--muted);font-size:12px}
+  .enggrp[open]>summary::before{content:'▾'}
+  .enggrp>summary b{margin-left:auto;font-size:11.5px;color:var(--brand);font-weight:800}
+  .enggrp .chk{padding:9px 12px}
   .setrow .field{display:flex;flex-direction:column;gap:5px;margin-top:10px}
   .setrow .field label{font-size:12px;font-weight:700;color:var(--muted)}
   .setrow input[type=text],.setrow input[type=date],.setrow input[type=number],.setrow textarea,.setrow select{border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:10px 11px;font-size:14px;color:var(--ink);font-family:inherit;width:100%}
@@ -366,6 +373,36 @@
   .chart-leg-item{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:var(--muted)}
   .chart-leg-dot{width:9px;height:9px;border-radius:50%}
   footer{text-align:center;color:var(--muted);font-size:11px;margin:26px 0 8px;line-height:1.7}
+  /* ===== 列印 / 存 PDF ===== */
+  #printHost{display:none}
+  @media print{
+    html,body{margin:0;padding:0;background:#fff!important;color:#000!important}
+    body>*{display:none!important}
+    body>#printHost{display:block!important}
+    @page{size:A4;margin:10mm}
+    .p-wrap{font-family:"PingFang TC","Microsoft JhengHei",sans-serif;color:#000}
+    .p-h1{font-size:20px;font-weight:800;text-align:center;margin:0 0 2px}
+    .p-sub{font-size:12px;text-align:center;color:#555;margin:0 0 12px}
+    .p-cal{width:100%;border-collapse:collapse;table-layout:fixed}
+    .p-cal th{font-size:12px;border:1px solid #bbb;padding:4px;background:#f3f3f3}
+    .p-cal td{border:1px solid #bbb;vertical-align:top;height:92px;padding:3px 4px;font-size:10px}
+    .p-cal td .pd{font-size:12px;font-weight:800;line-height:1.2}
+    .p-cal td.we .pd{color:#c0392b}
+    .p-cal td.out{background:#fafafa}
+    .p-cal td.out .pd{color:#ccc}
+    .p-tag{display:inline-block;font-size:9px;border:1px solid #999;border-radius:3px;padding:0 3px;margin:1px 2px 0 0;line-height:1.5}
+    .p-wk{width:100%;border-collapse:collapse}
+    .p-wk th,.p-wk td{border:1px solid #bbb;padding:6px 8px;font-size:12px;text-align:left;vertical-align:top}
+    .p-wk th{background:#f3f3f3;width:64px;text-align:center}
+    .p-blk{margin:2px 0}
+    .p-grade{font-size:15px;font-weight:800;margin:14px 0 5px;border-bottom:2px solid #333;padding-bottom:2px}
+    .p-subj{margin:7px 0;page-break-inside:avoid}
+    .p-subj .snm{font-size:13px;font-weight:700;margin-bottom:3px}
+    .p-chaps{display:grid;grid-template-columns:1fr 1fr;gap:1px 16px}
+    .p-chap{font-size:11px;padding:1px 0}
+    .p-box{display:inline-block;width:11px;height:11px;border:1.3px solid #333;border-radius:2px;margin-right:5px;vertical-align:-1px;text-align:center;line-height:10px;font-size:9px}
+    .p-foot{margin-top:14px;font-size:10px;color:#777;text-align:center}
+  }
 </style>
 </head>
 <body>
@@ -390,6 +427,7 @@
     <div class="mleg">
       <span><i style="background:var(--cram)"></i>道場</span>
       <span><i style="background:var(--self)"></i>修行</span>
+      <span><i style="background:var(--read)"></i>閱讀</span>
       <span><i style="background:var(--eng)"></i>英語</span>
       <span><i style="background:var(--exam)"></i>試煉</span>
       <span>✓ 任務全達成</span>
@@ -450,6 +488,9 @@
 <!-- modal host -->
 <div class="ov" id="ov" onclick="if(event.target===this)closeOv()"><div class="sheet" id="sheet"></div></div>
 
+<!-- 列印用容器（螢幕隱藏，僅列印時顯示）-->
+<div id="printHost"></div>
+
 <script>
 /* =========================================================================
    學習計畫日曆  —  單檔離線 PWA
@@ -468,17 +509,42 @@ const DAYW=['週日','週一','週二','週三','週四','週五','週六'];
 const TYPES={
   cram:{n:'道場(補習)',i:'🥋',c:'var(--cram)'},
   self:{n:'修行(自習)',i:'🌀',c:'var(--self)'},
+  read:{n:'閱讀',i:'📖',c:'var(--read)'},
   eng:{n:'英語忍術',i:'🔤',c:'var(--eng)'},
   exam:{n:'試煉(考試)',i:'⚔️',c:'var(--exam)'},
   rest:{n:'休息',i:'🍃',c:'var(--rest)'},
   custom:{n:'其他',i:'✨',c:'var(--custom)'}
 };
-/* 英語家族 App（同網域 localStorage 互通，可自動讀進度） */
+/* 英語家族 App（同網域 localStorage 互通，可自動讀進度）
+   kind: vocab=讀 engpomo_v1_*.srs 的待複習 / qbank=讀 *_qb_v1 錯題 / exam=讀講義 *_wrong,*_units
+         conv=讀 *_en_global.cards 已練句 / link=只提供連結（無資料可讀或需密碼） */
+const ENGGROUPS=['單字','檢定 · 職場','文法 · 句型','會考 · 學測','旅遊 · 生活'];
 const ENGAPPS=[
-  {key:'engpomo_v1_2000', id:'v2000', name:'國中2000單字', url:'https://fullmodel-star.github.io/english2000/', kind:'vocab', color:'#e8504f'},
-  {key:'englishreading_grammar', id:'gram', name:'國中英語文法', url:'https://fullmodel-star.github.io/englishreading/', kind:'link', color:'#7b5bd6'},
-  {key:'engpomo_v1_1200', id:'v1200', name:'國小1200單字', url:'https://fullmodel-star.github.io/english1200/', kind:'vocab', color:'#2eb872'},
-  {key:'cap_qb_v1', id:'capqb', name:'會考英語題庫', url:'https://fullmodel-star.github.io/cap-qbank/', kind:'link', color:'#4338ca'},
+  // 單字
+  {id:'v1200', name:'國小1200單字', url:'https://fullmodel-star.github.io/english1200/', group:'單字', kind:'vocab', key:'engpomo_v1_1200', color:'#2eb872'},
+  {id:'v2000', name:'國中2000單字', url:'https://fullmodel-star.github.io/english2000/', group:'單字', kind:'vocab', key:'engpomo_v1_2000', color:'#e8504f'},
+  {id:'v6000', name:'高中6000單字', url:'https://fullmodel-star.github.io/english6000/', group:'單字', kind:'vocab', key:'engpomo_v1_6000', color:'#f5a623'},
+  {id:'gcore', name:'學測必考單字', url:'https://fullmodel-star.github.io/gsat-core/', group:'單字', kind:'link', color:'#d97706'},
+  // 檢定 · 職場
+  {id:'toeic', name:'多益單字', url:'https://fullmodel-star.github.io/toeic-vocab/', group:'檢定 · 職場', kind:'vocab', key:'engpomo_v1_toeic', color:'#1e40af'},
+  {id:'toefl', name:'托福單字', url:'https://fullmodel-star.github.io/toefl-vocab/', group:'檢定 · 職場', kind:'vocab', key:'engpomo_v1_toefl', color:'#14532d'},
+  // 文法 · 句型
+  {id:'spin', name:'國中英語句型（拼句）', url:'https://fullmodel-star.github.io/englishS/', group:'文法 · 句型', kind:'link', color:'#1f8fd6'},
+  {id:'hsg', name:'高中英語文法', url:'https://fullmodel-star.github.io/hs-grammar/', group:'文法 · 句型', kind:'link', color:'#4338ca'},
+  {id:'phr', name:'英語片語', url:'https://fullmodel-star.github.io/english-phrases/', group:'文法 · 句型', kind:'link', color:'#0d9488'},
+  {id:'jeng', name:'國中英文題庫（內部）', url:'https://fullmodel-star.github.io/junior_english/', group:'文法 · 句型', kind:'link', color:'#7b5bd6'},
+  {id:'j1b', name:'國一下英語複習（內部）', url:'https://fullmodel-star.github.io/junior1b/', group:'文法 · 句型', kind:'link', color:'#6d28d9'},
+  // 會考 · 學測
+  {id:'capr', name:'國中會考複習', url:'https://fullmodel-star.github.io/cap-english/', group:'會考 · 學測', kind:'exam', pfx:'cap', color:'#e84393'},
+  {id:'gsatr', name:'學測複習', url:'https://fullmodel-star.github.io/gsat-english/', group:'會考 · 學測', kind:'exam', pfx:'gsat', color:'#0ea5a5'},
+  {id:'capqb', name:'會考英語題庫', url:'https://fullmodel-star.github.io/cap-qbank/', group:'會考 · 學測', kind:'qbank', key:'cap_qb_v1', color:'#4338ca'},
+  {id:'gsatqb', name:'學測英語題庫', url:'https://fullmodel-star.github.io/gsat-qbank/', group:'會考 · 學測', kind:'qbank', key:'gsat_qb_v1', color:'#0e7490'},
+  // 旅遊 · 生活
+  {id:'trip', name:'旅遊英文', url:'https://fullmodel-star.github.io/travel-english/', group:'旅遊 · 生活', kind:'conv', key:'trip_en_global', color:'#0ea5e9'},
+  {id:'fam', name:'家庭生活英語', url:'https://fullmodel-star.github.io/family-english/', group:'旅遊 · 生活', kind:'conv', key:'family_en_global', color:'#e76f51'},
+  {id:'camp', name:'校園生活英語', url:'https://fullmodel-star.github.io/campus-english/', group:'旅遊 · 生活', kind:'conv', key:'campus_en_global', color:'#65a30d'},
+  {id:'errand', name:'生活辦事英文', url:'https://fullmodel-star.github.io/errand-english/', group:'旅遊 · 生活', kind:'conv', key:'life_en_global', color:'#ea580c'},
+  {id:'social', name:'社交英文', url:'https://fullmodel-star.github.io/social-english/', group:'旅遊 · 生活', kind:'conv', key:'social_en_global', color:'#db2777'},
 ];
 const HUB='https://fullmodel-star.github.io/english-hub/';
 
@@ -536,7 +602,7 @@ function seed(){
     student:'小朋友', goal:'國中三年學習計畫',
     subjects:[], routine:[], events:{}, checks:{},
     plan:defaultPlan(),
-    eng:{apps:{v2000:true, gram:true}, note:'每天先完成單字複習 + 一點文法，暑假才不會忘光。', primary:'v2000'}
+    eng:{apps:{v2000:true, v1200:true, capqb:true}, note:'每天先完成單字複習 + 一點題庫／文法，暑假才不會忘光。', primary:'v2000'}
   };
 }
 function defaultPlan(){
@@ -1205,17 +1271,98 @@ function renderEng(d,key){
     ${dueHtml?`<div class="due">${dueHtml}</div>`:''}
   </div>`;
 }
+function readLS(k){try{return JSON.parse(localStorage.getItem(k))||{}}catch(e){return{}}}
+/* 讀各英語 App 進度（同網域才有值）→ {due:待辦數, text:顯示字串} */
 function engStat(a){
   try{
     if(a.kind==='vocab'){
-      const S2=JSON.parse(localStorage.getItem(a.key))||{}; const srs=S2.srs||{}; const now=Date.now();
+      const S2=readLS(a.key), srs=S2.srs||{}, now=Date.now();
       const learned=Object.keys(srs).length;
+      if(!learned)return{due:0,text:'尚未開始'};
       const due=Object.keys(srs).reduce((n,k)=>{const e=srs[k];return n+((e&&e.due&&e.due<=now)?1:0);},0);
-      if(!learned)return{text:'尚未開始'};
-      return{text: due? `待複習 ${due} 字`:`已學 ${learned}・複習完 ✓`};
+      return{due, text: due? `待複習 ${due} 字`:`已學 ${learned}・複習完 ✓`};
+    }
+    if(a.kind==='qbank'){
+      const S2=readLS(a.key), rec=S2.rec||{}, wr=(S2.wrong||[]);
+      const done=Object.keys(rec).length, nwr=wr.length;
+      if(!done&&!nwr)return{due:0,text:'尚未開始'};
+      return{due:nwr, text: nwr? `錯題 ${nwr} 題`:`作答 ${done} 題 ✓`};
+    }
+    if(a.kind==='exam'){
+      const wr=readLS(a.pfx+'_wrong'), un=readLS(a.pfx+'_units');
+      const nwr=Object.keys(wr).length, nu=Object.keys(un).length;
+      if(!nwr&&!nu)return{due:0,text:'尚未開始'};
+      return{due:nwr, text: nwr? `錯題 ${nwr}`:`完成 ${nu} 單元 ✓`};
+    }
+    if(a.kind==='conv'){
+      const S2=readLS(a.key), cards=S2.cards||{};
+      const pr=Object.keys(cards).length;
+      return{due:0, text: pr? `已練 ${pr} 句`:''};
     }
   }catch(e){}
-  return{text:''};
+  return{due:0,text:''};
+}
+
+/* ================= 列印 / 存 PDF ================= */
+function printView(kind){
+  const host=document.getElementById('printHost');
+  host.innerHTML = kind==='week'?printWeekHTML() : kind==='progress'?printProgHTML() : printMonthHTML();
+  setTimeout(()=>window.print(),60);
+}
+function printMonthHTML(){
+  const y=curMonth.getFullYear(), m=curMonth.getMonth(), p=S.plan||defaultPlan();
+  const first=new Date(y,m,1), start=new Date(first); start.setDate(1-first.getDay());
+  const dow=['日','一','二','三','四','五','六'];
+  let cells='';
+  for(let i=0;i<42;i++){
+    const d=new Date(start); d.setDate(start.getDate()+i); d.setHours(0,0,0,0);
+    const inM=d.getMonth()===m, we=(d.getDay()===0||d.getDay()===6);
+    if(i%7===0)cells+='<tr>';
+    let tags='';
+    if(inM){
+      const blks=studyBlocks(blocksFor(d)), seen=new Set();
+      blks.forEach(b=>{const s=b.subjectId?subjOf(b.subjectId):null; const lab=s?s.name:(TYPES[b.type]||TYPES.custom).n; if(seen.has(lab))return; seen.add(lab); tags+=`<span class="p-tag">${esc(lab)}</span>`;});
+      if(ENGAPPS.some(a=>S.eng.apps[a.id]))tags+='<span class="p-tag">英語</span>';
+    }
+    cells+=`<td class="${inM?'':'out'} ${we?'we':''}"><div class="pd">${inM?d.getDate():''}</div>${tags}</td>`;
+    if(i%7===6)cells+='</tr>';
+  }
+  return `<div class="p-wrap">
+    <div class="p-h1">${y} 年 ${m+1} 月　學習計畫</div>
+    <div class="p-sub">${esc(p.name||'')}　學生：${esc(S.student||'')}</div>
+    <table class="p-cal"><thead><tr>${dow.map(x=>`<th>${x}</th>`).join('')}</tr></thead><tbody>${cells}</tbody></table>
+    <div class="p-foot">火影修行計畫・學習日曆</div>
+  </div>`;
+}
+function printWeekHTML(){
+  const dm=['週一','週二','週三','週四','週五','週六','週日'], order=[1,2,3,4,5,6,0];
+  const rows=order.map((dowv,idx)=>{
+    const blks=S.routine.filter(r=>r.days.includes(dowv)).sort((a,b)=>(a.start||'').localeCompare(b.start||''));
+    const inner=blks.length? blks.map(r=>{const T=TYPES[r.type]||TYPES.custom; const lbl=r.label||autoTitleFrom(r.type,r.subjectId,r.chapter); return `<div class="p-blk">${esc(r.start||'')}–${esc(r.end||'')}　${T.i} ${esc(lbl)}</div>`;}).join('') : '<div class="p-blk" style="color:#aaa">—</div>';
+    return `<tr><th>${dm[idx]}</th><td>${inner}</td></tr>`;
+  }).join('');
+  return `<div class="p-wrap">
+    <div class="p-h1">每週修行表（固定作息）</div>
+    <div class="p-sub">學生：${esc(S.student||'')}　${esc((S.plan||{}).name||'')}</div>
+    <table class="p-wk"><tbody>${rows}</tbody></table>
+    <div class="p-foot">火影修行計畫・每週固定時段</div>
+  </div>`;
+}
+function printProgHTML(){
+  const grades=['國一','國二','國三']; let body='';
+  const subjBlock=s=>{const chaps=s.chaps.map(c=>`<div class="p-chap"><span class="p-box">${c.done?'✓':''}</span>${esc(c.n)}</div>`).join('');
+    return `<div class="p-subj"><div class="snm">${s.emoji||''} ${esc(s.name)}　<span style="font-weight:400;font-size:10px;color:#777">${s.chaps.filter(c=>c.done).length}/${s.chaps.length}</span></div><div class="p-chaps">${chaps}</div></div>`;};
+  grades.forEach(g=>{const subs=S.subjects.filter(s=>s.grade===g); if(!subs.length)return; body+=`<div class="p-grade">${g}</div>`+subs.map(subjBlock).join('');});
+  const other=S.subjects.filter(s=>!grades.includes(s.grade)); if(other.length)body+=`<div class="p-grade">其他</div>`+other.map(subjBlock).join('');
+  const tg=(S.plan&&S.plan.targets||[]).filter(t=>Number(t.target)>0).map(t=>`<div class="p-chap"><span class="p-box"></span>${esc(targetInfo(t).label)}</div>`).join('');
+  if(!body&&!tg)body='<div style="color:#999">尚無科目或目標，請先到設定載入課程範本、或新增總目標項目。</div>';
+  return `<div class="p-wrap">
+    <div class="p-h1">學習進度打勾清單</div>
+    <div class="p-sub">學生：${esc(S.student||'')}　可手動打勾追蹤</div>
+    ${tg?`<div class="p-grade">總目標項目</div>${tg}`:''}
+    ${body}
+    <div class="p-foot">火影修行計畫・進度清單</div>
+  </div>`;
 }
 
 /* ================= 週課表 ================= */
@@ -1338,7 +1485,12 @@ function delSubject(sid){if(!confirm('刪除整個科目與其進度？'))return
 /* ================= 設定 ================= */
 function renderSet(){
   const b=document.getElementById('setBody');
-  const engChecks=ENGAPPS.map(a=>`<label class="chk"><input type="checkbox" ${S.eng.apps[a.id]?'checked':''} onchange="toggleEngApp('${a.id}',this.checked)"><span style="flex:1">${a.name}</span><a href="${a.url}" target="_blank" rel="noopener" style="font-size:12px;color:var(--brand);text-decoration:none">開啟 ›</a></label>`).join('');
+  const engChecks=ENGGROUPS.map(g=>{
+    const apps=ENGAPPS.filter(a=>a.group===g);
+    const sel=apps.filter(a=>S.eng.apps[a.id]).length;
+    const rows=apps.map(a=>`<label class="chk"><input type="checkbox" ${S.eng.apps[a.id]?'checked':''} onchange="toggleEngApp('${a.id}',this.checked)"><span style="flex:1">${a.name}${a.kind==='link'?'':' <small style="color:var(--muted);font-weight:600">· 可讀進度</small>'}</span><a href="${a.url}" target="_blank" rel="noopener" style="font-size:12px;color:var(--brand);text-decoration:none">開啟 ›</a></label>`).join('');
+    return `<details class="enggrp"${sel?' open':''}><summary>${g}${sel?` <b>已選 ${sel}</b>`:''}</summary>${rows}</details>`;
+  }).join('');
   const primOpts=ENGAPPS.filter(a=>S.eng.apps[a.id]).map(a=>`<option value="${a.id}" ${S.eng.primary===a.id?'selected':''}>${a.name}</option>`).join('')||'<option>（先勾選上面的 App）</option>';
   const p=S.plan||defaultPlan();
   const planStats=goalStats(p.start,p.end);
@@ -1368,16 +1520,27 @@ function renderSet(){
       <div class="goalstat"><b>${planStats.dailyNeed.toFixed(1)}</b><span>每日需完成量</span></div>
     </div>
     <div class="field"><label>總目標項目</label>${targetHtml}<div class="targethint">章節目標：選科目與目標章數。自訂目標：名稱、已完成、總量、單位，例如「數學題目 40/300 題」。</div></div>
-    <button class="btn ghost mt" onclick="addTarget()">＋ 新增目標項目</button>
+    <div style="display:flex;gap:10px;margin-top:12px">
+      <button class="btn ghost" style="flex:1" onclick="addTargetSubject()">＋ 科目章節目標</button>
+      <button class="btn ghost" style="flex:1" onclick="addTargetCustom()">＋ 自訂目標</button>
+    </div>
   </div>
 
   <div class="card setrow">
     <h4>🔤 每日英語忍術</h4>
-    <p>勾選要納入「每日忍術」的英語 App。日曆會在「今日」最上方顯示，並自動讀取單字待複習數量（需和英語 App 用同一個網址開啟）。</p>
+    <p>從英語家族全系列勾選要納入「每日忍術」的 App（分組收合，點標題展開）。標「可讀進度」的會自動帶出待複習／錯題數（需和英語 App 用同一個網址開啟）。建議只勾 2～3 支主打，才不會每天太多。</p>
     <div style="margin-top:8px">${engChecks}</div>
     <div class="field"><label>主要開啟的 App（點「開啟」直接進入）</label><select onchange="S.eng.primary=this.value;save();">${primOpts}</select></div>
     <div class="field"><label>給孩子的一句話</label><input type="text" value="${esc(S.eng.note||'')}" onchange="S.eng.note=this.value;save()"></div>
     <a class="btn ghost mt" href="${HUB}" target="_blank" rel="noopener" style="text-align:center;text-decoration:none;display:block">🎓 打開英語學習入口（看跨 App 儀表板）</a>
+  </div>
+
+  <div class="card setrow">
+    <h4>🖨️ 列印 / 存 PDF</h4>
+    <p>選一種版面列印貼牆，或在列印視窗選「另存為 PDF」。月曆會印出目前在「任務曆」看的那個月份。</p>
+    <button class="btn ghost mt" onclick="printView('month')">🗓️ 本月月曆（貼牆版）</button>
+    <button class="btn ghost mt" onclick="printView('week')">📋 每週作息表</button>
+    <button class="btn ghost mt" onclick="printView('progress')">✅ 進度打勾清單</button>
   </div>
 
   <div class="card setrow">
@@ -1440,12 +1603,17 @@ function setTargetKind(i,kind){
   }
   save(); renderSet();
 }
-function addTarget(){
-  const used=new Set((S.plan.targets||[]).map(t=>t.subjectId));
-  const s=S.subjects.find(x=>!used.has(x.id))||S.subjects[0];
+function addTargetSubject(){
   S.plan.targets=S.plan.targets||[];
-  if(s)S.plan.targets.push({kind:'subject',subjectId:s.id,target:Math.max(1,s.chaps.length||1)});
-  else S.plan.targets.push({kind:'custom',name:'自訂目標',target:30,done:0,unit:'項'});
+  const used=new Set(S.plan.targets.map(t=>t.subjectId));
+  const s=S.subjects.find(x=>!used.has(x.id))||S.subjects[0];
+  if(!s){ alert('目前還沒有科目。請先到「忍者等級」載入或新增科目，或改按「＋自訂目標」。'); return; }
+  S.plan.targets.push({kind:'subject',subjectId:s.id,target:Math.max(1,s.chaps.length||1)});
+  save(); renderSet();
+}
+function addTargetCustom(){
+  S.plan.targets=S.plan.targets||[];
+  S.plan.targets.push({kind:'custom',name:'',target:30,done:0,unit:'項'});
   save(); renderSet();
 }
 function removeTarget(i){S.plan.targets.splice(i,1);save();renderSet();}
@@ -1509,7 +1677,7 @@ function openBlock(r){
 }
 function tglDay(d,el){if(mDays.includes(d))mDays=mDays.filter(x=>x!==d);else mDays.push(d);el.classList.toggle('on');}
 function pickType(k,el){mType=k;document.querySelectorAll('#tp button').forEach(b=>b.classList.toggle('on',b.dataset.t===k));syncSubjWrap();syncTitle();}
-function syncSubjWrap(){const show=(mType==='self'||mType==='exam');['subjWrap','chapWrap'].forEach(id=>{const w=document.getElementById(id);if(w)w.style.display=show?'block':'none';});}
+function syncSubjWrap(){const show=(mType==='self'||mType==='exam'||mType==='read');['subjWrap','chapWrap'].forEach(id=>{const w=document.getElementById(id);if(w)w.style.display=show?'block':'none';});}
 /* 章節下拉（把該科所有章節拉進來）*/
 function chapOptions(sid,sel){
   if(!sid)return '<option value="">（先選科目，才會列出章節）</option>';
@@ -1521,6 +1689,7 @@ let mLblDirty=false;
 function autoTitleFrom(type,sid,chap){const sub=sid?subjOf(sid):null;const cx=chap?' '+chap:'';
   return type==='self'?(sub?'修行・'+sub.name+cx:'修行(自習)')
     :type==='cram'?(sub?'道場・'+sub.name+cx:'道場(補習)')
+    :type==='read'?(sub?'閱讀・'+sub.name+cx:'閱讀')
     :type==='eng'?'每日英語忍術'
     :type==='exam'?(sub?'試煉・'+sub.name+cx:'試煉(考試)')
     :type==='rest'?'休息':'';}
