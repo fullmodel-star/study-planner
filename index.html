@@ -1263,6 +1263,8 @@ function renderStreak(){
 
 /* 英語家族今日待複習總數（單字待複習＋題庫/講義錯題，同網域才有值）*/
 function engTotalDue(){ return ENGAPPS.filter(a=>S.eng.apps[a.id]).reduce((n,a)=>n+(engStat(a).due||0),0); }
+/* 單字類且有待複習時，直接開到 App 的「今日複習」畫面（深連結）*/
+function engHref(a,due){ return (a.kind==='vocab' && due>0) ? a.url+'?review=1' : a.url; }
 /* 英語必修卡 */
 function renderEng(d,key){
   const box=document.getElementById('engBox');
@@ -1278,12 +1280,13 @@ function renderEng(d,key){
   const headline = totalDue>0 ? `🔁 英語家族今日待複習 <b>${totalDue}</b>，先把它清完！`
     : (hasData? '✅ 今日待複習都清完了，太強了！' : esc(S.eng.note||'每天固定練一點英語，暑假不遺忘。'));
   // 每支勾選的 App 各自一列：可開啟＋顯示待複習/錯題
-  const appRows=stats.map(x=>`<a class="engapp" href="${x.a.url}" target="_blank" rel="noopener">${x.a.id===prim.id?'<span class="star">主打</span>':''}<span class="en">${esc(x.a.name)}</span><span class="es${x.due?' due':''}">${x.text?esc(x.text):'開啟 ›'}</span></a>`).join('');
+  const appRows=stats.map(x=>`<a class="engapp" href="${engHref(x.a,x.due)}" target="_blank" rel="noopener">${x.a.id===prim.id?'<span class="star">主打</span>':''}<span class="en">${esc(x.a.name)}</span><span class="es${x.due?' due':''}">${x.text?esc(x.text):'開啟 ›'}</span></a>`).join('');
+  const primDue=(stats.find(x=>x.a.id===prim.id)||{}).due||0;
   box.innerHTML=`<div class="engbox">
     <div class="et"><b>🔤 每日英語忍術</b><span class="tag">${ck?'今日已修得 ✓':'今日必修'}</span></div>
     <div class="em">${headline}</div>
     <div class="erow">
-      <a class="eb" href="${prim.url}" target="_blank" rel="noopener">開啟 ${esc(prim.name)} ▶</a>
+      <a class="eb" href="${engHref(prim,primDue)}" target="_blank" rel="noopener">開啟 ${esc(prim.name)}${primDue?' 複習':''} ▶</a>
       <button class="eb ${ck?'done':''}" onclick="toggleTask('${key}','${engKey}',event)">${ck?'✅ 已修得':'修行完成 ○'}</button>
     </div>
     <div class="engapps">${appRows}</div>
