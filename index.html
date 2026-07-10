@@ -1816,8 +1816,23 @@ if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch
       <div style="display:flex;gap:11px;align-items:flex-start"><span style="font-size:20px">🔤</span><div><b>英語忍術</b>：接上你們家的英語 App，每天一點不遺忘</div></div>
     </div>
     目前是<b>空白</b>的，兩種開始方式：到「修行表」自己排時段、到「忍者等級」按<b>📚載入國中三年科目範本</b>；也可到「設定」載入完整示範參考。</div>
-    <div class="sbtns" style="margin-top:16px"><button class="cc" onclick="localStorage.setItem('sp_onb','1');closeOv();go('set')">先看設定/載入範本</button><button class="ok" onclick="localStorage.setItem('sp_onb','1');closeOv()">開始修行 ▶</button></div>`);
+    <div class="sbtns" style="margin-top:16px"><button class="cc" onclick="localStorage.setItem('sp_onb','1');localStorage.setItem('sp_whatsnew_v1','1');closeOv();go('set')">先看設定/載入範本</button><button class="ok" onclick="localStorage.setItem('sp_onb','1');localStorage.setItem('sp_whatsnew_v1','1');closeOv()">開始修行 ▶</button></div>`);
   },400);
+})();
+
+/* 新功能一次提示（給已看過新手引導的既有使用者，看過即不再出現）*/
+(function(){ if(!localStorage.getItem('sp_onb'))return;            // 新用戶走引導，不重複打擾
+  if(localStorage.getItem('sp_whatsnew_v1'))return;
+  setTimeout(()=>{ sheet(`<h3>✨ 新功能上線</h3>
+    <div style="font-size:13.5px;line-height:1.85;color:var(--ink)">這陣子加了這些，快去試試：
+    <div style="margin:12px 0;display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;gap:11px;align-items:flex-start"><span style="font-size:20px">🎯</span><div><b>自訂總目標</b>：設定 → 總目標項目可加<b>「＋自訂目標」</b>（例：數學題目 40/300 題），不只章節。</div></div>
+      <div style="display:flex;gap:11px;align-items:flex-start"><span style="font-size:20px">📖</span><div><b>閱讀類型</b>：排時段（修行表／今日）時，類型多了<b>「閱讀」</b>，可指定科目章節。</div></div>
+      <div style="display:flex;gap:11px;align-items:flex-start"><span style="font-size:20px">🖨️</span><div><b>列印／存 PDF</b>：設定最下方，可印<b>月曆貼牆版／每週作息表／進度打勾清單</b>。</div></div>
+      <div style="display:flex;gap:11px;align-items:flex-start"><span style="font-size:20px">🔤</span><div><b>英語家族全整合</b>：每日英語忍術可選<b>整個英語家族</b>；在任何英語 App <b>答對就累積忍者等級</b>；有待複習時，今日卡點一下<b>直接開到複習／錯題</b>。</div></div>
+    </div></div>
+    <div class="sbtns" style="margin-top:14px"><button class="ok" onclick="localStorage.setItem('sp_whatsnew_v1','1');closeOv()">知道了 ▶</button></div>`);
+  },600);
 })();
 </script>
 <!-- 版本更新提示（家族共用模組 fam-update v1）-->
