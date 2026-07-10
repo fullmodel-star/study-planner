@@ -11,6 +11,9 @@
 <meta name="apple-mobile-web-app-title" content="火影修行計畫">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <title>火影修行計畫・學習日曆</title>
 <style>
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -24,7 +27,7 @@
     --bg:#141a2b;--card:#1e2740;--ink:#f2ead9;--muted:#a89b82;--line:#2f3d5c;--navy:#0d1526;
     --sh:0 8px 24px rgba(0,0,0,.4);--sh2:0 12px 30px rgba(0,0,0,.5)}}
   html,body{margin:0}
-  body{font-family:"PingFang TC","Microsoft JhengHei",system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--ink);
+  body{font-family:"Outfit","PingFang TC","Microsoft JhengHei",system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--ink);
     -webkit-font-smoothing:antialiased;padding-bottom:calc(74px + env(safe-area-inset-bottom))}
   .wrap{max-width:720px;margin:0 auto;padding:0 14px}
   /* header */
@@ -62,9 +65,15 @@
   .engbox .due a b{color:#ffe08a}
   /* task list */
   .tasks{display:flex;flex-direction:column;gap:10px;margin-top:2px}
-  .task{display:flex;align-items:flex-start;gap:11px;padding:12px 13px;border-left:5px solid var(--self)}
+  .task{display:flex;align-items:flex-start;gap:11px;padding:12px 13px;border-left:5px solid var(--self);
+    transition:transform .2s ease,box-shadow .2s ease}
+  .task:hover{transform:translateY(-2px);box-shadow:var(--sh2)}
+  .task:active{transform:translateY(0)}
   .task .tk{flex:0 0 auto;width:28px;height:28px;border-radius:9px;border:2px solid var(--line);background:transparent;cursor:pointer;
-    display:flex;align-items:center;justify-content:center;font-size:16px;color:#fff;margin-top:1px;transition:.15s}
+    display:flex;align-items:center;justify-content:center;font-size:16px;color:#fff;margin-top:1px;
+    transition:background-color .15s ease,border-color .15s ease,transform .1s ease}
+  .task .tk:hover{transform:scale(1.08)}
+  .task .tk:active{transform:scale(0.92)}
   .task.done .tk{background:var(--self);border-color:var(--self)}
   .task.done .body .tl{text-decoration:line-through;opacity:.55}
   .task .body{flex:1;min-width:0}
@@ -74,8 +83,12 @@
   .task .sub{font-size:12.5px;color:var(--muted);margin-top:3px;line-height:1.55}
   .task .prog{margin-top:7px}
   .task .acts{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap}
-  .task .acts button{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:9px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
+  .task .acts button{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:9px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;
+    transition:background-color .15s ease,transform .15s ease,box-shadow .15s ease}
+  .task .acts button:hover{background:var(--line);transform:translateY(-1px)}
+  .task .acts button:active{transform:translateY(0)}
   .task .acts button.p{background:var(--self);color:#fff;border-color:var(--self)}
+  .task .acts button.p:hover{background:#2b8a3e;border-color:#2b8a3e;box-shadow:0 4px 12px rgba(47,158,68,.35)}
   .mini{width:34px;height:34px;border-radius:9px;flex:0 0 auto}
   .empty{text-align:center;color:var(--muted);padding:26px 16px;font-size:13.5px;line-height:1.8}
   /* progress bar */
@@ -125,7 +138,7 @@
   .mdow span{text-align:center;font-size:11px;font-weight:800;color:var(--muted);padding:2px 0}
   .mdow span.we{color:var(--cram)}
   .mgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
-  .mcell{position:relative;min-height:56px;border:1px solid var(--line);background:var(--card);border-radius:12px;cursor:pointer;
+  .mcell{position:relative;min-height:58px;border:1px solid var(--line);background:var(--card);border-radius:12px;cursor:pointer;
     display:flex;flex-direction:column;align-items:center;padding:5px 2px 4px;font-family:inherit;color:var(--ink);box-shadow:var(--sh)}
   .mcell:active{transform:scale(.95)}
   .mcell .mnum{font-size:13.5px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
@@ -136,12 +149,63 @@
   .mcell.full{background:linear-gradient(180deg,rgba(34,160,107,.14),var(--card))}
   .mcell .mdots{display:flex;gap:3px;flex-wrap:wrap;justify-content:center;margin-top:5px;max-width:100%}
   .mcell .mdots i{width:6px;height:6px;border-radius:50%;flex:0 0 auto}
+  .mcell .msubs{display:flex;gap:2px;flex-wrap:wrap;justify-content:center;margin-top:5px;max-width:100%;min-height:14px}
+  .mcell .msubs b{font-size:9px;line-height:1;color:#fff;border-radius:5px;padding:2px 4px;max-width:28px;overflow:hidden;white-space:nowrap}
+  .mcell .mbrief{display:none}
   .mcell .mchk{position:absolute;top:3px;right:4px;font-size:11px;color:var(--self);font-weight:900}
   .mcell .mn{position:absolute;top:4px;right:5px;font-size:9.5px;font-weight:800;color:var(--muted);background:var(--bg);border-radius:6px;padding:0 4px;line-height:1.5}
   .mleg{display:flex;flex-wrap:wrap;gap:5px 12px;justify-content:center;margin-top:14px;font-size:11px;color:var(--muted)}
   .mleg span{display:inline-flex;align-items:center;gap:4px}
   .mleg i{width:8px;height:8px;border-radius:50%}
   .msum{margin-top:14px}
+  /* 桌機放大：螢幕夠寬時，版面加寬、月曆格子與字體放大 */
+  @media(min-width:820px){
+    .wrap{max-width:1040px}
+    .htop{max-width:1040px}
+    .mgrid,.mdow{gap:8px}
+    .mdow span{font-size:14px;padding:4px 0}
+    .mhead .mt{font-size:22px}
+    .mhead button{width:46px;height:48px;font-size:22px}
+    .mcell{min-height:118px;border-radius:14px;padding:8px 5px 7px}
+    .mcell .mnum{font-size:18px}
+    .mcell .mdots{gap:5px;margin-top:8px}
+    .mcell .mdots i{width:8px;height:8px}
+    .mcell .msubs{gap:4px;margin-top:8px;min-height:20px}
+    .mcell .msubs b{font-size:12px;max-width:52px;padding:3px 7px}
+    .mcell .mn,.mcell .mchk{font-size:12px}
+    .mleg{font-size:12.5px;gap:6px 16px;margin-top:18px}
+  }
+  @media(min-width:1120px){
+    .wrap{max-width:1180px}
+    .htop{max-width:1180px}
+    .mcell{min-height:134px}
+    .mcell .msubs b{max-width:64px}
+  }
+  .goalcard{padding:14px 15px;margin-top:12px}
+  .goalcard h4{margin:0 0 8px;font-size:14.5px;display:flex;align-items:center;gap:7px}
+  .goalgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+  .goalstat{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:9px 8px;text-align:center}
+  .goalstat b{display:block;font-size:17px;color:var(--brand)}
+  .goalstat span{display:block;font-size:10.5px;color:var(--muted);margin-top:2px}
+  .subsum{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+  .subsum span{font-size:12px;background:var(--bg);border:1px solid var(--line);border-radius:20px;padding:4px 9px;font-weight:700;color:var(--muted)}
+  .subsum b{color:var(--ink)}
+  .monthlist{display:flex;flex-direction:column;gap:7px;margin-top:12px}
+  .mday{display:grid;grid-template-columns:42px 1fr auto;gap:9px;align-items:center;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:9px 10px;color:var(--ink);font-family:inherit;text-align:left;cursor:pointer}
+  .mday .date{font-size:12px;font-weight:900;color:var(--brand);font-variant-numeric:tabular-nums}
+  .mday .main{font-size:13px;font-weight:800;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mday .meta{font-size:11px;font-weight:800;color:var(--muted)}
+  @media(max-width:420px){.goalgrid{gap:6px}.goalstat{padding:8px 4px}.goalstat b{font-size:15px}.goalstat span{font-size:10px}.subsum span{font-size:11px}.mday{grid-template-columns:38px 1fr auto;gap:7px;padding:8px}}
+  .weekdash{padding:14px 15px;margin-bottom:11px}
+  .weekdash h4{margin:0 0 8px;font-size:14.5px}
+  .weekdash .wline{font-size:12.5px;color:var(--muted);line-height:1.6;margin-top:8px}
+  .weekdash .wline b{color:var(--ink)}
+  .targetrow{display:grid;grid-template-columns:96px 1fr 82px 70px 42px;gap:8px;align-items:center;margin-top:8px}
+  .targetrow input{text-align:center}
+  .targetrow input.name{text-align:left}
+  .targetrow button{width:42px;height:38px;border:0;border-radius:10px;background:var(--bg);color:var(--cram);font-size:16px;cursor:pointer}
+  .targethint{font-size:11.5px;color:var(--muted);line-height:1.5;margin-top:6px}
+  @media(max-width:520px){.targetrow{grid-template-columns:1fr 1fr 70px 58px 38px}.targetrow .wide{grid-column:1 / span 2}.targetrow button{width:38px}}
   /* buttons */
   .btn{display:block;width:100%;border:0;border-radius:13px;padding:13px;font-size:14.5px;font-weight:800;cursor:pointer;font-family:inherit;background:var(--brand);color:#fff;box-shadow:0 8px 18px rgba(255,106,26,.32)}
   .btn.ghost{background:var(--card);color:var(--brand);border:1px solid var(--line);box-shadow:var(--sh)}
@@ -154,7 +218,7 @@
   nav{position:fixed;left:0;right:0;bottom:0;z-index:44;background:var(--card);border-top:1px solid var(--line);
     padding:6px 0 calc(6px + env(safe-area-inset-bottom));display:flex}
   nav button{flex:1;background:none;border:0;cursor:pointer;color:var(--muted);font-family:inherit;font-size:10.5px;font-weight:700;padding:4px 0;display:flex;flex-direction:column;align-items:center;gap:3px}
-  nav button .ni{font-size:21px;line-height:1}
+  nav button .ni{width:22px;height:22px;display:block;margin:0 auto;stroke-width:2.2}
   nav button.on{color:var(--brand)}
   /* settings rows */
   .set{padding:4px 2px}
@@ -166,7 +230,7 @@
   .setrow input[type=checkbox]{width:20px;height:20px;accent-color:var(--brand)}
   .setrow .field{display:flex;flex-direction:column;gap:5px;margin-top:10px}
   .setrow .field label{font-size:12px;font-weight:700;color:var(--muted)}
-  .setrow input[type=text],.setrow textarea,.setrow select{border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:10px 11px;font-size:14px;color:var(--ink);font-family:inherit;width:100%}
+  .setrow input[type=text],.setrow input[type=date],.setrow input[type=number],.setrow textarea,.setrow select{border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:10px 11px;font-size:14px;color:var(--ink);font-family:inherit;width:100%}
   .setrow textarea{min-height:64px;resize:vertical;line-height:1.6}
   .tip{background:#fff7e6;border:1px solid #ffe0a3;border-radius:14px;padding:13px 14px;font-size:12.5px;line-height:1.85;color:#6b551a;margin-top:12px}
   @media (prefers-color-scheme:dark){.tip{background:#2a2412;border-color:#4a3d17;color:#e5cf8f}}
@@ -232,11 +296,18 @@
   .rankcard .xpbar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#ffb347,#ff6a1a);transition:width .5s}
   .rankcard .xpline{font-size:12px;opacity:.95}
   .rankcard .xpline b{color:#fff}
-  .jgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:10px}
-  .jutsu{text-align:center;border-radius:13px;padding:11px 6px;border:1.5px solid var(--line)}
+  .jgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:10px;perspective:1000px}
+  .jutsu{text-align:center;border-radius:13px;padding:11px 6px;border:1.5px solid var(--line);
+    transition:transform .3s cubic-bezier(.175,.885,.32,1.275),box-shadow .3s ease,background-color .3s ease;
+    cursor:pointer;box-shadow:var(--sh)}
   .jutsu.on{background:linear-gradient(135deg,#fff4e0,#ffe6c2);border-color:var(--brand)}
-  .jutsu.off{background:#f4f2ec;opacity:.75}
-  .jutsu .je{font-size:26px;line-height:1.1}
+  .jutsu.on:hover{transform:translateY(-5px) rotate(2deg);box-shadow:0 8px 20px rgba(255,106,26,.25)}
+  .jutsu.on:active{transform:scale(.95)}
+  .jutsu.off{background:rgba(0,0,0,.03);border-style:dashed;opacity:.6}
+  @media (prefers-color-scheme:dark){.jutsu.off{background:rgba(255,255,255,.03)}}
+  .jutsu .je{font-size:26px;line-height:1.1;transition:transform .2s}
+  .jutsu.on:hover .je{animation:jutsuBounce .6s infinite ease-in-out}
+  @keyframes jutsuBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
   .jutsu .jn{font-size:12.5px;font-weight:800;margin-top:3px;color:var(--ink)}
   .jutsu.off .jn{color:#b8ad97}
   .jutsu .jh{font-size:10.5px;margin-top:2px;line-height:1.35}
@@ -250,6 +321,50 @@
   .streak .big{font-size:30px;font-weight:900;line-height:1}
   .streak .st{font-size:12.5px;opacity:.95;line-height:1.5}
   .hide{display:none!important}
+  .quote-card{background:linear-gradient(135deg,#fff7e6,#fff0d4);border:1px dashed var(--brand);border-radius:14px;padding:10px 14px;margin-top:10px;font-size:13px;line-height:1.5;color:#b25300;display:flex;align-items:center;gap:8px;box-shadow:var(--sh)}
+  @media(prefers-color-scheme:dark){.quote-card{background:linear-gradient(135deg,#2c1a0e,#1c1109);border-color:var(--brand2);color:#ffd6b3}}
+  .quote-card .qi{font-size:20px}
+  .quote-card b{font-weight:800}
+  .timer-card{padding:14px 16px;margin-top:11px;display:flex;align-items:center;justify-content:between;gap:15px;border:1px solid var(--line);transition:border-color .3s ease,box-shadow .3s ease}
+  .timer-card.glowing{border-color:var(--brand);animation:chakraGlow 2s infinite ease-in-out}
+  @keyframes chakraGlow{0%,100%{box-shadow:0 0 8px rgba(255,106,26,.25)}50%{box-shadow:0 0 20px rgba(255,106,26,.6)}}
+  .timer-left{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:0 0 auto}
+  .timer-time{font-size:28px;font-weight:900;color:var(--ink);font-family:'Outfit',sans-serif;font-variant-numeric:tabular-nums}
+  .timer-label{font-size:11px;color:var(--muted);font-weight:700;margin-top:2px}
+  .timer-right{flex:1;display:flex;flex-direction:column;gap:8px}
+  .timer-controls{display:flex;gap:6px}
+  .timer-btn{flex:1;border:0;border-radius:9px;padding:8px 0;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit}
+  .timer-btn.start{background:var(--brand);color:#fff}
+  .timer-btn.pause{background:#8a5a1a;color:#fff}
+  .timer-btn.reset{background:var(--bg);color:var(--muted);border:1px solid var(--line)}
+  .timer-presets{display:flex;gap:5px}
+  .timer-preset-btn{flex:1;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:6px;padding:4px 0;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit}
+  .timer-preset-btn:hover{background:var(--line)}
+  .hm-card{padding:14px 15px;margin-top:12px}
+  .hm-grid{display:grid;grid-template-columns:repeat(10,1fr);gap:5px;margin-top:10px;justify-content:center}
+  @media(min-width:480px){.hm-grid{grid-template-columns:repeat(15,1fr);gap:6px}}
+  @media(min-width:600px){.hm-grid{grid-template-columns:repeat(20,1fr);gap:6px}}
+  .hm-cell{aspect-ratio:1/1;border-radius:4px;background:var(--line);position:relative;cursor:pointer;transition:transform .15s ease}
+  .hm-cell:hover{transform:scale(1.25);z-index:10;outline:1.5px solid var(--brand)}
+  .hm-cell.level-1{background:#ffe0b2}
+  .hm-cell.level-2{background:#ffb74d}
+  .hm-cell.level-3{background:#ff9800}
+  .hm-cell.level-4{background:#f57c00}
+  .hm-cell.level-5{background:#e65100}
+  @media(prefers-color-scheme:dark){.hm-cell{background:#222b45}
+    .hm-cell.level-1{background:#4a2818}
+    .hm-cell.level-2{background:#8c431d}
+    .hm-cell.level-3{background:#c65e23}
+    .hm-cell.level-4{background:#ff7a2e}
+    .hm-cell.level-5{background:#ff9d61}}
+  .hm-cell::after{content:attr(data-tip);position:absolute;bottom:130%;left:50%;transform:translateX(-50%) scale(0);background:rgba(20,26,45,.95);color:#fff;padding:5px 8px;border-radius:6px;font-size:10px;font-weight:700;white-space:nowrap;pointer-events:none;transition:transform .15s ease;box-shadow:0 4px 12px rgba(0,0,0,.2);z-index:100}
+  .hm-cell:hover::after{transform:translateX(-50%) scale(1)}
+  .chart-card{padding:14px 15px;margin-top:12px}
+  .chart-bar{height:16px;border-radius:8px;display:flex;overflow:hidden;background:var(--line);margin-top:10px}
+  .chart-segment{height:100%;transition:width .3s ease}
+  .chart-legend{display:flex;flex-wrap:wrap;gap:8px 12px;margin-top:11px;justify-content:center}
+  .chart-leg-item{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:var(--muted)}
+  .chart-leg-dot{width:9px;height:9px;border-radius:50%}
   footer{text-align:center;color:var(--muted);font-size:11px;margin:26px 0 8px;line-height:1.7}
 </style>
 </head>
@@ -289,6 +404,8 @@
       <div class="dnow" id="dnow" onclick="jumpToday()"></div>
       <button onclick="shiftDay(1)" aria-label="後一天">›</button>
     </div>
+    <div id="ninjaQuote" class="quote-card"></div>
+    <div id="chakraTimer" class="card timer-card"></div>
     <div id="todayStatus"></div>
     <div id="streakBox"></div>
     <div id="engBox"></div>
@@ -307,6 +424,9 @@
   <!-- ============ 進度 ============ -->
   <section id="tab-prog" class="hide">
     <div id="progStats"></div>
+    <div class="card" style="margin-top:12px;padding:10px 12px">
+      <input type="text" id="progSearch" placeholder="🔍 搜尋科目或章節名稱…" oninput="renderProg()" style="width:100%;padding:8px 12px;border:1px solid var(--line);background:var(--bg);border-radius:10px;font-size:13.5px;color:var(--ink);font-family:inherit">
+    </div>
     <div id="progList"></div>
   </section>
 
@@ -320,11 +440,11 @@
 <button class="fab" id="fab" onclick="onFab()" aria-label="新增">＋</button>
 
 <nav>
-  <button data-t="month" class="on" onclick="go('month')"><span class="ni">📆</span>任務曆</button>
-  <button data-t="today" onclick="go('today')"><span class="ni">📅</span>今日</button>
-  <button data-t="week" onclick="go('week')"><span class="ni">🗓️</span>修行表</button>
-  <button data-t="prog" onclick="go('prog')"><span class="ni">🥷</span>忍者等級</button>
-  <button data-t="set" onclick="go('set')"><span class="ni">⚙️</span>設定</button>
+  <button data-t="month" class="on" onclick="go('month')"><svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"></path></svg>任務曆</button>
+  <button data-t="today" onclick="go('today')"><svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line><path d="M9 16l2 2 4-4"></path></svg>今日</button>
+  <button data-t="week" onclick="go('week')"><svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line><line x1="7" y1="14" x2="17" y2="14"></line><line x1="7" y1="18" x2="17" y2="18"></line></svg>修行表</button>
+  <button data-t="prog" onclick="go('prog')"><svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"></path><circle cx="12" cy="12" r="2"></circle></svg>忍者等級</button>
+  <button data-t="set" onclick="go('set')"><svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>設定</button>
 </nav>
 
 <!-- modal host -->
@@ -415,8 +535,14 @@ function seed(){
   return {
     student:'小朋友', goal:'國中三年學習計畫',
     subjects:[], routine:[], events:{}, checks:{},
+    plan:defaultPlan(),
     eng:{apps:{v2000:true, gram:true}, note:'每天先完成單字複習 + 一點文法，暑假才不會忘光。', primary:'v2000'}
   };
+}
+function defaultPlan(){
+  const s=new Date(); s.setHours(0,0,0,0);
+  const e=new Date(s); e.setDate(e.getDate()+55);
+  return {name:'暑假總目標',start:ymd(s),end:ymd(e),excludeWeekends:true,restDays:[0],dailyMax:180,targets:[]};
 }
 /* 一鍵載入：國中三年科目範本 */
 function loadFramework(){
@@ -437,12 +563,15 @@ function loadDemo(){
   add([1,3,5],'15:40','16:40','self','g1_en','修行・英語','搭配英語 App');
   add([6],'10:00','11:30','self','g2_gw','修行・國文','');
   add([0],'16:00','17:00','rest',null,'複習本週 + 休息','週日輕鬆一點');
+  D.plan.targets=[{kind:'subject',subjectId:'g1_ma',target:9},{kind:'subject',subjectId:'g2_na',target:8},{kind:'custom',name:'數學練習題',target:200,done:0,unit:'題'}];
   S=D; save(); go('today'); toast('🎬 已載入完整示範');
 }
 /* ---------- 載入 / 儲存 ---------- */
 let S = load();
 function load(){try{const j=JSON.parse(localStorage.getItem(KEY));if(j&&j.subjects)return norm(j);}catch(e){} return seed();}
 function norm(j){ j.subjects=j.subjects||[]; j.routine=j.routine||[]; j.events=j.events||{}; j.checks=j.checks||{}; j.recentSubj=j.recentSubj||[];
+  j.plan=j.plan||defaultPlan(); j.plan.targets=j.plan.targets||[]; j.plan.restDays=j.plan.restDays||[]; if(!j.plan.start)j.plan.start=defaultPlan().start; if(!j.plan.end)j.plan.end=defaultPlan().end; if(!j.plan.dailyMax)j.plan.dailyMax=180; if(!('excludeWeekends'in j.plan))j.plan.excludeWeekends=true;
+  j.plan.targets.forEach(t=>{if(!t.kind)t.kind='subject'; if(t.kind==='custom'&&!t.unit)t.unit='項';});
   j.eng=j.eng||{}; j.eng.apps=j.eng.apps||{}; if(!('note'in j.eng))j.eng.note=''; if(!('primary'in j.eng))j.eng.primary=null;
   j.subjects.forEach(s=>{
     s.chaps=(s.chaps||[]).map(c=>typeof c==='string'?{n:c,done:false}:c);
@@ -456,6 +585,56 @@ function recentSubjChips(){ const ids=(S.recentSubj||[]).filter(id=>subjOf(id)).
   return `<div class="dur" style="margin:0 0 7px"><span>最近</span>${ids.map(id=>{const s=subjOf(id);return `<button type="button" onclick="pickSubj('${id}')">${s.emoji?s.emoji+' ':''}${esc(s.name)}</button>`;}).join('')}</div>`; }
 function pickSubj(id){ const el=document.getElementById('msub'); if(el){el.value=id; onSubjChange();} }
 function save(){localStorage.setItem(KEY,JSON.stringify(S));}
+
+/* ---------- 目標 / 有效學習日 ---------- */
+function parseDay(s){const d=new Date((s||ymd(new Date()))+'T00:00:00');d.setHours(0,0,0,0);return d;}
+function inPlan(d){const p=S.plan||defaultPlan(), x=ymd(d);return x>=p.start&&x<=p.end;}
+function isRestDay(d){const p=S.plan||defaultPlan(), dow=d.getDay();return (p.excludeWeekends&&(dow===0||dow===6))||(p.restDays||[]).includes(dow);}
+function isStudyDay(d){return inPlan(d)&&!isRestDay(d);}
+function eachDate(a,b,fn){const d=parseDay(a), e=parseDay(b); for(;d<=e;d.setDate(d.getDate()+1))fn(new Date(d));}
+function dateSpanLabel(a,b){return `${(+a.split('-')[1])}/${(+a.split('-')[2])}–${(+b.split('-')[1])}/${(+b.split('-')[2])}`;}
+function minsOf(b){const s=(b.start||'').split(':').map(Number), e=(b.end||'').split(':').map(Number); if(s.length<2||e.length<2||isNaN(s[0])||isNaN(e[0]))return 0; return Math.max(0,e[0]*60+e[1]-s[0]*60-s[1]);}
+function studyBlocks(blks){return blks.filter(b=>b.type!=='rest');}
+function doneStudyBlocks(key,blks){return studyBlocks(blks).filter(b=>isChecked(key,b._k));}
+function targetRows(){return (S.plan&&S.plan.targets||[]).filter(t=>Number(t.target)>0&&(t.kind==='custom'||subjOf(t.subjectId)));}
+function targetInfo(t){
+  if(t.kind==='custom'){
+    const target=Number(t.target)||0, done=Number(t.done)||0, unit=t.unit||'項', name=t.name||'自訂目標';
+    return {kind:'custom',name,unit,target,done,total:target,pct:target?Math.min(100,Math.round(done/target*100)):0,remain:Math.max(0,target-done),label:`${name} ${done}/${target}${unit}`};
+  }
+  const s=subjOf(t.subjectId), total=s?s.chaps.length:0, done=s?s.chaps.filter(c=>c.done).length:0, target=Math.min(Number(t.target)||0,total||Number(t.target)||0);
+  return {kind:'subject',s,name:s?s.name:'科目',unit:'章',target,done,total,pct:target?Math.min(100,Math.round(done/target*100)):0,remain:Math.max(0,target-done),label:`${s?(s.emoji||'')+s.name:'科目'} ${done}/${target}章`};
+}
+function goalStats(a,b){
+  const p=S.plan||defaultPlan(); let days=0, doneDays=0, planned=0, done=0, mins=0; const subj={};
+  eachDate(a,b,d=>{
+    if(!isStudyDay(d))return;
+    days++;
+    const key=ymd(d), blks=studyBlocks(blocksFor(d));
+    planned+=blks.length; done+=doneStudyBlocks(key,blks).length;
+    if(dayProgress(key,blks).all)doneDays++;
+    blks.forEach(b=>{
+      if(!b.subjectId)return;
+      const s=subjOf(b.subjectId); if(!s)return;
+      const x=subj[b.subjectId]||(subj[b.subjectId]={s,planned:0,done:0,mins:0});
+      x.planned++; x.mins+=minsOf(b); if(isChecked(key,b._k))x.done++;
+    });
+    doneStudyBlocks(key,blks).forEach(b=>{mins+=minsOf(b);});
+  });
+  const targets=targetRows().map(targetInfo);
+  const targetNeed=targets.reduce((n,t)=>n+t.remain,0);
+  const leftDays=(()=>{let n=0;eachDate(ymd(new Date())>p.start?ymd(new Date()):p.start,p.end,d=>{if(isStudyDay(d))n++;});return n;})();
+  return {days,doneDays,planned,done,mins,subj:Object.values(subj).sort((a,b)=>b.done-a.done),targets,targetNeed,leftDays,dailyNeed:leftDays?targetNeed/leftDays:0};
+}
+function monthBriefFor(blks){
+  const rows=[]; const seen=new Set();
+  blks.forEach(b=>{if(!b.subjectId||seen.has(b.subjectId))return; const s=subjOf(b.subjectId); if(!s)return; seen.add(b.subjectId); rows.push({s,b});});
+  const chips=rows.slice(0,3).map(x=>`<b style="background:${x.s.color||'var(--brand)'}">${esc((x.s.name||'科').slice(0,2))}</b>`).join('');
+  const first=rows[0]; let brief='';
+  if(first){const chap=first.b.chapter||(first.s.chaps.find(c=>!c.done)||{}).n||''; brief=chap?`${first.s.name}：${chap}`:first.s.name;}
+  else if(blks.length){brief=(blks[0].label||((TYPES[blks[0].type]||TYPES.custom).n));}
+  return {chips,brief};
+}
 
 /* ---------- 日期工具 ---------- */
 let cur=new Date(); cur.setHours(0,0,0,0);
@@ -520,7 +699,54 @@ function checkJutsu(silent){
   if(newly.length){Ninja.put(w); if(!silent)newly.forEach(j=>toast('🎉 學會絕招：'+j.e+' '+j.n));}
   return newly;
 }
-function awardXP(n,opts){Ninja.gain(n,'planner',opts);checkJutsu(false);}
+function awardXP(n,opts){Ninja.gain(n,'planner',opts);checkJutsu(false);triggerConfetti();}
+function triggerConfetti() {
+  const canvas = document.createElement('canvas');
+  canvas.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9999;';
+  document.body.appendChild(canvas);
+  const ctx = canvas.getContext('2d');
+  let w = canvas.width = window.innerWidth;
+  let h = canvas.height = window.innerHeight;
+  const particles = [];
+  const colors = ['#ff6a1a', '#ff9a4d', '#22a06b', '#2f6df0', '#eab308', '#8b5cf6'];
+  for (let i = 0; i < 80; i++) {
+    particles.push({
+      x: Math.random() * w,
+      y: Math.random() * -h - 20,
+      size: Math.random() * 8 + 6,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      vx: Math.random() * 4 - 2,
+      vy: Math.random() * 5 + 4,
+      rotation: Math.random() * Math.PI,
+      rotationSpeed: Math.random() * 0.1 - 0.05
+    });
+  }
+  const startTime = Date.now();
+  function update() {
+    ctx.clearRect(0, 0, w, h);
+    let active = false;
+    particles.forEach(p => {
+      p.y += p.vy;
+      p.x += p.vx;
+      p.rotation += p.rotationSpeed;
+      if (p.y < h) {
+        active = true;
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rotation);
+        ctx.fillStyle = p.color;
+        ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+        ctx.restore();
+      }
+    });
+    if (active && Date.now() - startTime < 3000) {
+      requestAnimationFrame(update);
+    } else {
+      canvas.remove();
+    }
+  }
+  update();
+}
 /* streak：連續全部完成的天數（絕招條件用） */
 function streakDays(){
   let n=0; let d=new Date(); d.setHours(0,0,0,0);
@@ -545,6 +771,198 @@ function jutsuHtml(){
     <h4>🥷 絕招圖鑑 <span style="float:right;color:var(--brand)">${gained}/${JUTSU.length} 招</span></h4>
     <div class="jgrid">${cells}</div>${srcHtml}</div>`;
 }
+let pomoDuration = 25 * 60;
+let pomoSeconds = 25 * 60;
+let pomoInterval = null;
+let pomoRunning = false;
+
+function renderTimerUI() {
+  const el = document.getElementById('chakraTimer');
+  if (!el) return;
+  const mins = Math.floor(pomoSeconds / 60);
+  const secs = pomoSeconds % 60;
+  const displayTime = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  
+  el.className = 'card timer-card' + (pomoRunning ? ' glowing' : '');
+  el.innerHTML = `
+    <div class="timer-left">
+      <span class="timer-time" id="timerDisplay">${displayTime}</span>
+      <span class="timer-label">查克拉專注時間</span>
+    </div>
+    <div class="timer-right">
+      <div class="timer-controls">
+        <button type="button" class="timer-btn ${pomoRunning ? 'pause' : 'start'}" onclick="togglePomo()">
+          ${pomoRunning ? '⏸ 暫停' : '▶ 開始修行'}
+        </button>
+        <button type="button" class="timer-btn reset" onclick="resetPomo()">↺ 重置</button>
+      </div>
+      <div class="timer-presets">
+        <button type="button" class="timer-preset-btn" onclick="setPomoPreset(15)">15 分</button>
+        <button type="button" class="timer-preset-btn" onclick="setPomoPreset(25)">25 分</button>
+        <button type="button" class="timer-preset-btn" onclick="setPomoPreset(40)">40 分</button>
+      </div>
+    </div>
+  `;
+}
+
+function togglePomo() {
+  if (pomoRunning) {
+    clearInterval(pomoInterval);
+    pomoRunning = false;
+  } else {
+    pomoRunning = true;
+    pomoInterval = setInterval(tickPomo, 1000);
+  }
+  renderTimerUI();
+}
+
+function resetPomo() {
+  clearInterval(pomoInterval);
+  pomoRunning = false;
+  pomoSeconds = pomoDuration;
+  renderTimerUI();
+}
+
+function setPomoPreset(mins) {
+  pomoDuration = mins * 60;
+  resetPomo();
+}
+
+function tickPomo() {
+  if (pomoSeconds > 0) {
+    pomoSeconds--;
+    const displayEl = document.getElementById('timerDisplay');
+    if (displayEl) {
+      const m = Math.floor(pomoSeconds / 60);
+      const s = pomoSeconds % 60;
+      displayEl.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+  } else {
+    clearInterval(pomoInterval);
+    pomoRunning = false;
+    playChakraBeep();
+    awardXP(10);
+    toast('🌀 查克拉專注修行完成！獲得 +10 XP');
+    pomoSeconds = pomoDuration;
+    renderToday();
+  }
+}
+
+function playChakraBeep() {
+  try {
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const notes = [523.25, 659.25, 783.99, 1046.50];
+    notes.forEach((freq, idx) => {
+      setTimeout(() => {
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.35);
+      }, idx * 120);
+    });
+  } catch(e) {}
+}
+
+function renderHeatmapHtml() {
+  const cells = [];
+  const end = new Date(); end.setHours(0,0,0,0);
+  const start = new Date(end); start.setDate(end.getDate() - 59);
+  
+  for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+    const key = ymd(d);
+    const dayChecks = S.checks[key] ? Object.keys(S.checks[key]).length : 0;
+    let lvl = 0;
+    if (dayChecks > 0) {
+      if (dayChecks <= 1) lvl = 1;
+      else if (dayChecks <= 2) lvl = 2;
+      else if (dayChecks <= 4) lvl = 3;
+      else if (dayChecks <= 6) lvl = 4;
+      else lvl = 5;
+    }
+    
+    const m = d.getMonth() + 1;
+    const dateStr = `${m}/${d.getDate()}`;
+    const tip = `${dateStr}：修煉 ${dayChecks} 項任務`;
+    cells.push(`<div class="hm-cell ${lvl ? 'level-' + lvl : ''}" data-tip="${esc(tip)}"></div>`);
+  }
+  
+  return `<div class="card hm-card">
+    <h4 style="margin:0 0 5px">📊 忍道修煉熱網圖 (近 60 天)</h4>
+    <p style="margin:0;font-size:11.5px;color:var(--muted)">格子橘色越深代表當天完成任務越多</p>
+    <div class="hm-grid">${cells.join('')}</div>
+  </div>`;
+}
+
+function renderSubjectChartHtml() {
+  const minsBySubj = {};
+  let totalMins = 0;
+  
+  S.routine.forEach(r => {
+    if (r.subjectId && r.type !== 'rest') {
+      const mins = minsOf(r) * (r.days || []).length;
+      if (mins > 0) {
+        minsBySubj[r.subjectId] = (minsBySubj[r.subjectId] || 0) + mins;
+        totalMins += mins;
+      }
+    }
+  });
+  
+  if (totalMins === 0) {
+    return `<div class="card chart-card">
+      <h4 style="margin:0 0 5px">📈 每週修行時間分配</h4>
+      <p style="margin:5px 0 0;font-size:12px;color:var(--muted)">排課表並指定科目後，這裡會顯示各科時間佔比 📊</p>
+    </div>`;
+  }
+  
+  const segments = [];
+  const legendItems = [];
+  const sorted = Object.entries(minsBySubj).sort((a, b) => b[1] - a[1]);
+  
+  sorted.forEach(([sid, mins]) => {
+    const s = subjOf(sid);
+    if (!s) return;
+    const pct = Math.round(mins / totalMins * 100);
+    const hrs = Math.round(mins / 60 * 10) / 10;
+    
+    segments.push(`<div class="chart-segment" style="width:${pct}%;background:${s.color || 'var(--brand)'}" title="${esc(s.name)} ${hrs}小時 (${pct}%)"></div>`);
+    legendItems.push(`<span class="chart-leg-item">
+      <i class="chart-leg-dot" style="background:${s.color || 'var(--brand)'}"></i>
+      ${s.emoji || ''}${esc(s.name)} <b>${hrs}h</b> (${pct}%)
+    </span>`);
+  });
+  
+  return `<div class="card chart-card">
+    <h4 style="margin:0 0 5px">📈 每週修行時間分配</h4>
+    <p style="margin:0;font-size:11.5px;color:var(--muted)">根據每週固定課表統計各學科時間比例</p>
+    <div class="chart-bar">${segments.join('')}</div>
+    <div class="chart-legend">${legendItems.join('')}</div>
+  </div>`;
+}
+
+const QUOTES = [
+  { text: "說到做到，這就是我的忍道！", author: "漩渦鳴人" },
+  { text: "努力也是一種才能！", author: "李洛克" },
+  { text: "人生的道路上，沒有捷徑。", author: "旗木卡卡西" },
+  { text: "只要有樹葉飛舞的地方，火就會燃燒。", author: "三代火影" },
+  { text: "真正重要的，是永不放棄的執著！", author: "自來也" },
+  { text: "不相信自己的人，連努力的價值都沒有。", author: "阿凱" },
+  { text: "我可是要成為火影的男人！", author: "漩渦鳴人" },
+  { text: "別看低自己，你可是擁有無限可能性的忍者！", author: "旗木卡卡西" },
+  { text: "只要能堅持到底，再小的水滴也能穿透巨石。", author: "李洛克" },
+  { text: "修行就是不斷挑戰昨日的自己！", author: "阿凱" }
+];
+function renderQuote() {
+  const el = document.getElementById('ninjaQuote');
+  if (!el) return;
+  const q = QUOTES[Math.floor(Math.random() * QUOTES.length)];
+  el.innerHTML = `<span class="qi">🍥</span><div><b>忍道金句：</b>「${esc(q.text)}」—— <i>${esc(q.author)}</i></div>`;
+}
 
 /* ---------- 導覽 ---------- */
 let TAB='month';
@@ -552,7 +970,7 @@ function go(t){TAB=t;
   ['month','today','week','prog','set'].forEach(x=>document.getElementById('tab-'+x).classList.toggle('hide',x!==t));
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
   document.getElementById('fab').classList.toggle('hide',t==='set'||t==='prog'||t==='month');
-  if(t==='month')renderMonth();if(t==='today')renderToday();if(t==='week')renderWeek();if(t==='prog')renderProg();if(t==='set')renderSet();
+  if(t==='month')renderMonth();if(t==='today'){renderToday();renderQuote();}if(t==='week')renderWeek();if(t==='prog')renderProg();if(t==='set')renderSet();
   window.scrollTo(0,0);
 }
 function shiftDay(n){cur.setDate(cur.getDate()+n);renderToday();}
@@ -587,7 +1005,7 @@ function blocksFor(d){
 function dayProgress(key,blks){
   const engReq=ENGAPPS.some(a=>S.eng.apps[a.id]);
   const engDone=engReq&&isChecked(key,'eng_'+key);
-  const nb=blks.filter(b=>b.type!=='eng');
+  const nb=blks.filter(b=>b.type!=='eng'&&b.type!=='rest');
   const total=nb.length+(engReq?1:0);
   const done=nb.filter(b=>isChecked(key,b._k)).length+(engDone?1:0);
   return {total,done,all:total>0&&done===total,engReq,engDone,nb};
@@ -601,19 +1019,19 @@ function monthToday(){curMonth=new Date();curMonth.setDate(1);curMonth.setHours(
 function cellPick(key){cur=new Date(key+'T00:00:00');cur.setHours(0,0,0,0);go('today');}
 function renderMonth(){
   const y=curMonth.getFullYear(), m=curMonth.getMonth(), tKey=ymd(new Date());
-  document.getElementById('mTitle').innerHTML=`${y} 年 ${m+1} 月<small>點日期看當天任務</small>`;
+  const p=S.plan||defaultPlan();
+  document.getElementById('mTitle').innerHTML=`${y} 年 ${m+1} 月<small>${p.name||'總目標'}・點日期看內容</small>`;
   const first=new Date(y,m,1); const start=new Date(first); start.setDate(1-first.getDay());
   let h='';
   for(let i=0;i<42;i++){
     const d=new Date(start); d.setDate(start.getDate()+i); d.setHours(0,0,0,0);
     const key=ymd(d), inM=d.getMonth()===m, we=(d.getDay()===0||d.getDay()===6);
-    const blks=blocksFor(d);
+    const blks=studyBlocks(blocksFor(d));
     const done=blks.filter(b=>isChecked(key,b._k)).length;
-    const engKey='eng_'+key, engOn=ENGAPPS.some(a=>S.eng.apps[a.id]);
-    const hasEng=blks.some(b=>b.type==='eng');
     // 收集顏色（去重、依類型）
     const types=[...new Set(blks.map(b=>b.type))];
     const dots=types.slice(0,4).map(t=>`<i style="background:${(TYPES[t]||TYPES.custom).c}"></i>`).join('');
+    const mb=monthBriefFor(blks);
     const full = blks.length>0 && done===blks.length;
     let corner='';
     if(full) corner='<span class="mchk">✓</span>';
@@ -621,15 +1039,36 @@ function renderMonth(){
     h+=`<button class="mcell ${inM?'':'out'} ${we?'we':''} ${key===tKey?'today':''} ${full?'full':''}" onclick="cellPick('${key}')">
       <span class="mnum">${d.getDate()}</span>
       ${corner}
+      <span class="msubs">${mb.chips}</span>
+      <span class="mbrief">${esc(mb.brief)}</span>
       <span class="mdots">${dots}</span>
     </button>`;
   }
   document.getElementById('mGrid').innerHTML=h;
   // 本月摘要
-  let planned=0,fin=0,dd=new Date(y,m,1);
   const dim=new Date(y,m+1,0).getDate();
-  for(let i=1;i<=dim;i++){const d=new Date(y,m,i);const key=ymd(d);const b=blocksFor(d);planned+=b.length;fin+=b.filter(x=>isChecked(key,x._k)).length;}
-  document.getElementById('mSum').innerHTML=`<div class="card setrow" style="margin-top:0"><h4>📆 ${m+1} 月修行概況</h4><p>本月共發布 <b>${planned}</b> 個任務，已達成 <b style="color:var(--self)">${fin}</b> 個（${planned?Math.round(fin/planned*100):0}%）。<br>點任一天的方格，即可查看／編輯當天的道場、修行與英語忍術。</p></div>`;
+  const ms=goalStats(ymd(new Date(y,m,1)),ymd(new Date(y,m,dim)));
+  const pct=ms.planned?Math.round(ms.done/ms.planned*100):0;
+  const subjHtml=ms.subj.slice(0,6).map(x=>`<span>${x.s.emoji||''}<b>${esc(x.s.name)}</b> ${x.done}/${x.planned}</span>`).join('')||'<span>本月尚無科目任務</span>';
+  const tgtHtml=ms.targets.slice(0,4).map(t=>`<span><b>${esc(t.name)}</b> ${t.done}/${t.target}${esc(t.unit)}</span>`).join('');
+  let dayRows='';
+  for(let i=1;i<=dim;i++){
+    const d=new Date(y,m,i), key=ymd(d), blks=studyBlocks(blocksFor(d)); if(!blks.length)continue;
+    const mb=monthBriefFor(blks), done=blks.filter(b=>isChecked(key,b._k)).length;
+    dayRows+=`<button class="mday" onclick="cellPick('${key}')"><span class="date">${m+1}/${i}</span><span class="main">${esc(mb.brief||'學習任務')}</span><span class="meta">${done}/${blks.length}</span></button>`;
+  }
+  document.getElementById('mSum').innerHTML=`<div class="card goalcard">
+    <h4>📆 ${m+1} 月學習概況</h4>
+    <div class="bar"><i style="width:${pct}%"></i></div>
+    <div class="goalgrid">
+      <div class="goalstat"><b>${pct}%</b><span>任務完成率</span></div>
+      <div class="goalstat"><b>${ms.doneDays}/${ms.days}</b><span>有效學習日</span></div>
+      <div class="goalstat"><b>${Math.round(ms.mins/60*10)/10}</b><span>完成小時</span></div>
+    </div>
+    <div class="subsum">${subjHtml}</div>
+    ${tgtHtml?`<div class="subsum">${tgtHtml}</div>`:''}
+    ${dayRows?`<div class="monthlist">${dayRows}</div>`:''}
+  </div>`;
 }
 
 /* ================= 今日 ================= */
@@ -640,11 +1079,12 @@ function renderToday(){
   dn.className='dnow'+(isToday(d)?' today':'');
   dn.innerHTML=`<b>${d.getMonth()+1}月${d.getDate()}日 ${DAYW[d.getDay()]}</b><span>${isToday(d)?'今天':'點此回到今天'}</span>`;
   const blks=blocksFor(d);
-  const done=blks.filter(b=>isChecked(key,b._k)).length;
-  renderTodayStatus(d,key,blks,done);
+  const P=dayProgress(key,blks);
+  renderTodayStatus(d,key,blks,P.done);
   renderStreak();
   renderEng(d,key);
-  document.getElementById('todayCount').textContent = blks.length? `任務 ${done}/${blks.length}` : '';
+  renderTimerUI();
+  document.getElementById('todayCount').textContent = P.total? `學習 ${P.done}/${P.total}` : '';
   const list=document.getElementById('taskList');
   if(!blks.length){ list.innerHTML=`<div class="card empty">今天還沒有任務 🍃<br>用右下 <b>＋</b> 發布當天任務，或到「修行表」排每週固定修行。<div class="dur" style="justify-content:center;margin-top:12px"><button type="button" onclick="copyDayFull(-1)">📋 複製昨天</button><button type="button" onclick="copyDayFull(-7)">📋 複製上週同天</button></div></div>`; return; }
   list.innerHTML=blks.map(b=>taskCard(b,key)).join('');
@@ -654,12 +1094,17 @@ function renderTodayStatus(d,key,blks,doneBlk){
   const el=document.getElementById('todayStatus');
   const P=dayProgress(key,blks);
   const total=P.total, done=P.done;
-  if(!total){el.innerHTML='';return;}
+  const p=S.plan||defaultPlan(), gs=goalStats(p.start,p.end);
+  const goalHint=targetRows().length?`<div class="card setrow" style="margin-top:10px">
+    <h4>${isStudyDay(d)?'🎯 今日目標節奏':'🍃 今日不列入有效學習日'}</h4>
+    <p>${isStudyDay(d)?`總目標還差 <b>${gs.targetNeed}</b> 個目標量，剩餘有效學習日 <b>${gs.leftDays}</b> 天，平均每天約 <b>${gs.dailyNeed.toFixed(1)}</b>。`:'週末或休息日已從總目標進度分母排除；可以休息，或只做輕量複習。'}</p>
+  </div>`:'';
+  if(!total){el.innerHTML=goalHint;return;}
   const pct=Math.round(done/total*100), all=P.all;
   // 小勾點：每項任務＋英語
   const chips=P.nb.map(b=>{const ok=isChecked(key,b._k);const t=(TYPES[b.type]||TYPES.custom);return `<i class="${ok?'ok':''}">${ok?'✓':'○'} ${t.i}${esc((b.label||t.n)).slice(0,6)}</i>`;}).join('')
     + (P.engReq?`<i class="${P.engDone?'ok':''}">${P.engDone?'✓':'○'} 🔤英語</i>`:'');
-  el.innerHTML=`<div class="tstat ${all?'alldone':''}">
+  el.innerHTML=`${goalHint}<div class="tstat ${all?'alldone':''}">
     <div class="ring" style="--p:${pct}"><span>${done}/${total}</span></div>
     <div class="ti"><b>${all?'🎉 今日修行全部完成！':`今日完成度 ${pct}%`}</b>
       <span>${all?'太強了，火之意志 +1，明天繼續 🔥':`還有 <b>${total-done}</b> 項任務要完成，衝吧！`}</span>
@@ -669,9 +1114,10 @@ function renderTodayStatus(d,key,blks,doneBlk){
   </div>`;
 }
 function markAllToday(key){
-  const blks=blocksFor(cur); blks.forEach(b=>setChecked(key,b._k,true));
+  const blks=blocksFor(cur).filter(b=>b.type!=='rest'); blks.forEach(b=>setChecked(key,b._k,true));
   if(ENGAPPS.some(a=>S.eng.apps[a.id])) setChecked(key,'eng_'+key,true);
   renderToday(); toast('🎉 今日任務全部完成！');
+  triggerConfetti();
 }
 /* 複製某天的安排到今天（成為當天事件）*/
 function copyDayFull(off){
@@ -715,7 +1161,17 @@ function taskCard(b,key){
     ${acts}
   </div>`;
 }
-function toggleTask(key,bk,ev){ev.stopPropagation();setChecked(key,bk,!isChecked(key,bk));renderToday();}
+function toggleTask(key,bk,ev){
+  ev.stopPropagation();
+  const checked=!isChecked(key,bk);
+  setChecked(key,bk,checked);
+  if(checked){
+    const blks=blocksFor(cur);
+    const P=dayProgress(key,blks);
+    if(P.all){triggerConfetti();toast('🎉 今日任務全數達成！');}
+  }
+  renderToday();
+}
 function advChap(sid,ev){ev&&ev.stopPropagation();const s=subjOf(sid);const c=s.chaps.find(x=>!x.done);if(c){c.done=true;if(!c.xp){c.xp=1;awardXP(30);}save();renderToday();toast('⚡ 習得「'+c.n+'」！+30 修行經驗');}}
 function advChapNamed(sid,name,ev){ev&&ev.stopPropagation();name=decodeURIComponent(name);const s=subjOf(sid);const c=s.chaps.find(x=>x.n===name);if(c&&!c.done){c.done=true;if(!c.xp){c.xp=1;awardXP(30);}save();renderToday();toast('⚡ 習得「'+c.n+'」！+30 修行經驗');}}
 function delEvent(key,id,ev){ev.stopPropagation();if(!confirm('刪除這個當天事件？'))return;S.events[key]=(S.events[key]||[]).filter(e=>e.id!==id);if(!S.events[key].length)delete S.events[key];save();renderToday();}
@@ -765,13 +1221,32 @@ function engStat(a){
 /* ================= 週課表 ================= */
 function renderWeek(){
   const g=document.getElementById('weekGrid'); const todayDow=new Date().getDay();
-  let h='';
+  const now=new Date(); now.setHours(0,0,0,0);
+  const mon=new Date(now); mon.setDate(now.getDate()-((now.getDay()+6)%7));
+  const sun=new Date(mon); sun.setDate(mon.getDate()+6);
+  const ws=goalStats(ymd(mon),ymd(sun));
+  const wpct=ws.planned?Math.round(ws.done/ws.planned*100):0;
+  const subjHtml=ws.subj.slice(0,5).map(x=>`<span>${x.s.emoji||''}<b>${esc(x.s.name)}</b> ${x.done}/${x.planned}</span>`).join('')||'<span>本週尚無科目任務</span>';
+  let h=`<div class="card weekdash">
+    <h4>📊 本週進度 ${dateSpanLabel(ymd(mon),ymd(sun))}</h4>
+    <div class="bar"><i style="width:${wpct}%"></i></div>
+    <div class="goalgrid">
+      <div class="goalstat"><b>${wpct}%</b><span>任務完成率</span></div>
+      <div class="goalstat"><b>${ws.doneDays}/${ws.days}</b><span>有效學習日</span></div>
+      <div class="goalstat"><b>${ws.targetNeed}</b><span>總目標剩餘量</span></div>
+    </div>
+    <div class="subsum">${subjHtml}</div>
+    <div class="wline">依目前總目標，剩餘有效學習日約 <b>${ws.leftDays}</b> 天，平均每天要推進 <b>${ws.dailyNeed.toFixed(1)}</b> 個目標量。</div>
+  </div>`;
   for(let dw=1;dw<=7;dw++){ const dow=dw%7; // 週一..週日
+    const dayDate=new Date(mon); dayDate.setDate(mon.getDate()+dw-1);
     const blks=S.routine.filter(r=>r.days.includes(dow)).sort((a,b)=>(a.start||'').localeCompare(b.start||''));
-    h+=`<div class="card wkday"><div class="wh">${DAYW[dow]}${dow===todayDow?'<span class="today-pill">今天</span>':''}<span class="n">${blks.length?blks.length+' 個時段':''}</span></div>`;
+    const restNote=isRestDay(dayDate)?'<span class="today-pill" style="background:var(--rest)">休息日</span>':'';
+    h+=`<div class="card wkday"><div class="wh">${DAYW[dow]}${dow===todayDow?'<span class="today-pill">今天</span>':''}${restNote}<span class="n">${blks.length?blks.length+' 個時段':''}</span></div>`;
     if(!blks.length)h+='<div class="none">— 沒有安排 —</div>';
     else h+=blks.map(r=>{const T=TYPES[r.type]||TYPES.custom;const s=r.subjectId?subjOf(r.subjectId):null;const lbl=r.label||(s?s.name:T.n);
-      return `<div class="wblk" style="border-left-color:${T.c}" onclick="openBlock(S.routine.find(x=>x.id==='${r.id}'))"><span class="wt">${r.start}–${r.end}</span><span class="wl">${esc(lbl)}</span><span class="wtype" style="background:${T.c}">${T.i}</span></div>`;}).join('');
+      const chap=r.chapter?`・${r.chapter}`:(s&&s.chaps.find(c=>!c.done)?`・${s.chaps.find(c=>!c.done).n}`:'');
+      return `<div class="wblk" style="border-left-color:${T.c}" onclick="openBlock(S.routine.find(x=>x.id==='${r.id}'))"><span class="wt">${r.start}–${r.end}</span><span class="wl">${s?(s.emoji||'')+' ':''}${esc(lbl)}${chap?`<small style="display:block;color:var(--muted);font-weight:600">${esc(chap)}</small>`:''}</span><span class="wtype" style="background:${T.c}">${T.i}</span></div>`;}).join('');
     h+='</div>';
   }
   g.innerHTML=h;
@@ -795,6 +1270,8 @@ function renderProg(){
         <span class="xpline">🏅 修行經驗 <b>${ri.xp}</b>${ri.nx?`　🎯 離「${ri.nx.n}」還差 <b>${ri.need}</b>`:'　👑 已達最高，你就是火影！'}</span></div>
     </div>
     ${jutsuHtml()}
+    ${renderHeatmapHtml()}
+    ${renderSubjectChartHtml()}
     <div class="card setrow" style="margin-top:12px">
     <h4>📜 國中三年章節進度 <span style="float:right;color:var(--brand)">${opct}%</span></h4>
     <div class="barwrap" style="margin-top:9px"><div class="bar"><i style="width:${opct}%"></i></div></div>
@@ -802,30 +1279,44 @@ function renderProg(){
   </div>`;
   const list=document.getElementById('progList');
   const YICON={'國一':'1️⃣','國二':'2️⃣','國三':'3️⃣'};
+  const searchEl=document.getElementById('progSearch');
+  const q=searchEl?searchEl.value.trim().toLowerCase():'';
   let h='';
   if(!S.subjects.length){
     h+=`<div class="card empty" style="margin-top:14px">還沒有任何科目 🍃<br>可以一鍵載入國中三年課綱範本，再自行修改。<br><button class="btn mt" style="max-width:280px;margin:12px auto 0" onclick="loadFramework()">📚 載入國中三年科目範本</button></div>`;
   }
   YEARS.forEach(y=>{
-    const arr=byYear(y).slice().sort((a,b)=>(SUBORD.indexOf(a.cat)+99*(a.cat==null))-(SUBORD.indexOf(b.cat)+99*(b.cat==null)));
+    let arr=byYear(y).slice().sort((a,b)=>(SUBORD.indexOf(a.cat)+99*(a.cat==null))-(SUBORD.indexOf(b.cat)+99*(b.cat==null)));
+    if(q){
+      arr=arr.filter(s=>{
+        const matchesName=s.name.toLowerCase().includes(q);
+        const matchingChaps=s.chaps.some(c=>c.n.toLowerCase().includes(q));
+        if(matchingChaps)openSub[s.id]=true;
+        return matchesName||matchingChaps;
+      });
+    }
     const op=openYear[y]!==false;
     h+=`<div class="yhead ${op?'':'cl'}" onclick="openYear['${y}']=${!op?'true':'false'};renderProg()">
       <span class="yi">${YICON[y]}</span><span class="yn">${y}</span>
       <span class="ypct">${arr.length?pctG(arr)+'%':'—'}</span><span class="ychev">${op?'▾':'▸'}</span></div>`;
     if(op){
-      h += arr.map(subjCard).join('');
+      h += arr.map(s=>subjCard(s,q)).join('');
       h += `<button class="btn ghost" style="margin-top:10px;padding:10px;font-size:13px" onclick="openSubjectFor('${y}')">＋ 在${y}新增科目</button>`;
     }
   });
   list.innerHTML=h;
 }
 let openSub={}, openYear={'國一':true,'國二':true,'國三':true};
-function subjCard(s){
+function subjCard(s, q){
   const dd=s.chaps.filter(c=>c.done).length, tt=s.chaps.length, pct=tt?Math.round(dd/tt*100):0;
   const opened=openSub[s.id];
   const tcol=s.tag==='複習'?'#f59e0b':(s.tag==='預習'?'#22a06b':'#64748b');
   const tagB=s.tag?`<span class="gtag" style="background:${tcol}22;color:${tcol}">${s.tag==='複習'?'🔁複習':s.tag==='預習'?'🌱預習':esc(s.tag)}</span>`:'';
-  const chaps=s.chaps.map((c,i)=>`<div class="chap ${c.done?'done':''}"><button class="ck" onclick="toggleChap('${s.id}',${i})">${c.done?'✓':''}</button><span>${esc(c.n)}</span><button class="del" onclick="delChap('${s.id}',${i})">✕</button></div>`).join('');
+  const chaps=s.chaps.map((c,i)=>{
+    const isMatch=q&&c.n.toLowerCase().includes(q);
+    const chapNameHtml=isMatch?esc(c.n).replace(new RegExp(`(${esc(q)})`,'gi'),'<mark style="background:#ffe08a;color:#2b2417;padding:0 2px;border-radius:3px">$1</mark>'):esc(c.n);
+    return `<div class="chap ${c.done?'done':''}"><button class="ck" onclick="toggleChap('${s.id}',${i})">${c.done?'✓':''}</button><span>${chapNameHtml}</span><button class="del" onclick="delChap('${s.id}',${i})">✕</button></div>`;
+  }).join('');
   return `<div class="card subj">
     <div class="sh" onclick="openSub['${s.id}']=!openSub['${s.id}'];renderProg()">
       <span class="dot" style="background:${s.color}"></span>
@@ -849,11 +1340,35 @@ function renderSet(){
   const b=document.getElementById('setBody');
   const engChecks=ENGAPPS.map(a=>`<label class="chk"><input type="checkbox" ${S.eng.apps[a.id]?'checked':''} onchange="toggleEngApp('${a.id}',this.checked)"><span style="flex:1">${a.name}</span><a href="${a.url}" target="_blank" rel="noopener" style="font-size:12px;color:var(--brand);text-decoration:none">開啟 ›</a></label>`).join('');
   const primOpts=ENGAPPS.filter(a=>S.eng.apps[a.id]).map(a=>`<option value="${a.id}" ${S.eng.primary===a.id?'selected':''}>${a.name}</option>`).join('')||'<option>（先勾選上面的 App）</option>';
+  const p=S.plan||defaultPlan();
+  const planStats=goalStats(p.start,p.end);
+  const restChecks=[1,2,3,4,5,6,0].map(d=>`<label class="chk" style="border-top:0;padding:5px 0"><input type="checkbox" ${(p.restDays||[]).includes(d)?'checked':''} onchange="toggleRestDay(${d},this.checked)"><span>${DAYW[d]}</span></label>`).join('');
+  const targetHtml=(p.targets||[]).map((t,i)=>targetRowHtml(t,i)).join('')||'<p style="margin-top:8px">尚未設定總目標項目。先新增一個目標，月曆與週進度就會開始追蹤。</p>';
   b.innerHTML=`
   <div class="card setrow">
     <h4>👤 學生資料</h4>
     <div class="field"><label>名字</label><input type="text" value="${esc(S.student)}" onchange="S.student=this.value;save();updHead()"></div>
     <div class="field"><label>這個階段的目標</label><input type="text" value="${esc(S.goal)}" onchange="S.goal=this.value;save();updHead()"></div>
+  </div>
+
+  <div class="card setrow">
+    <h4>🎯 總目標與有效學習日</h4>
+    <p>用總目標看每天與每週是否真的往前推進；週末和休息日會從進度分母排除。</p>
+    <div class="field"><label>目標名稱</label><input type="text" value="${esc(p.name||'')}" onchange="S.plan.name=this.value;save();renderSet()"></div>
+    <div class="row2">
+      <div class="field"><label>開始日期</label><input type="date" value="${esc(p.start)}" onchange="S.plan.start=this.value;save();renderSet()"></div>
+      <div class="field"><label>結束日期</label><input type="date" value="${esc(p.end)}" onchange="S.plan.end=this.value;save();renderSet()"></div>
+    </div>
+    <label class="chk"><input type="checkbox" ${p.excludeWeekends?'checked':''} onchange="S.plan.excludeWeekends=this.checked;save();renderSet()"><span>週六、週日不列入有效學習日</span></label>
+    <div class="field"><label>固定休息日</label><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px">${restChecks}</div></div>
+    <div class="field"><label>每天可用學習上限（分鐘，用來提醒負荷）</label><input type="number" min="0" step="10" value="${Number(p.dailyMax)||0}" onchange="S.plan.dailyMax=+this.value||0;save();renderSet()"></div>
+    <div class="goalgrid">
+      <div class="goalstat"><b>${planStats.leftDays}</b><span>剩餘有效日</span></div>
+      <div class="goalstat"><b>${planStats.targetNeed}</b><span>剩餘目標量</span></div>
+      <div class="goalstat"><b>${planStats.dailyNeed.toFixed(1)}</b><span>每日需完成量</span></div>
+    </div>
+    <div class="field"><label>總目標項目</label>${targetHtml}<div class="targethint">章節目標：選科目與目標章數。自訂目標：名稱、已完成、總量、單位，例如「數學題目 40/300 題」。</div></div>
+    <button class="btn ghost mt" onclick="addTarget()">＋ 新增目標項目</button>
   </div>
 
   <div class="card setrow">
@@ -898,10 +1413,47 @@ function renderSet(){
   </div>`;
   const on=document.getElementById('onbk'); if(on)on.checked=false;
 }
+function targetRowHtml(t,i){
+  const kind=t.kind||'subject', sid=t.subjectId||'', target=Number(t.target)||0, s=subjOf(sid), max=s?s.chaps.length:999;
+  if(kind==='custom')return `<div class="targetrow">
+    <select onchange="setTargetKind(${i},this.value)"><option value="subject">章節</option><option value="custom" selected>自訂</option></select>
+    <input class="name wide" type="text" value="${esc(t.name||'')}" placeholder="例：數學題目" onchange="S.plan.targets[${i}].name=this.value;save();renderSet()">
+    <input type="number" min="0" value="${Number(t.done)||0}" title="已完成" onchange="S.plan.targets[${i}].done=+this.value||0;save();renderSet()">
+    <input type="number" min="1" value="${target||''}" title="總量" onchange="S.plan.targets[${i}].target=+this.value||1;save();renderSet()">
+    <button type="button" onclick="removeTarget(${i})">✕</button>
+    <input class="wide" type="text" value="${esc(t.unit||'項')}" placeholder="單位：題/分/頁" onchange="S.plan.targets[${i}].unit=this.value||'項';save();renderSet()">
+  </div>`;
+  return `<div class="targetrow">
+    <select onchange="setTargetKind(${i},this.value)"><option value="subject" selected>章節</option><option value="custom">自訂</option></select>
+    <select class="wide" onchange="S.plan.targets[${i}].subjectId=this.value;save();renderSet()">${subjOptions(sid).replace('— 不指定 —','選擇科目')}</select>
+    <input type="number" min="1" max="${max}" value="${target||''}" placeholder="章數" onchange="S.plan.targets[${i}].target=+this.value||1;save();renderSet()">
+    <span style="font-size:12px;color:var(--muted);text-align:center">章</span>
+    <button type="button" onclick="removeTarget(${i})">✕</button>
+  </div>`;
+}
+function setTargetKind(i,kind){
+  const old=S.plan.targets[i]||{};
+  if(kind==='custom')S.plan.targets[i]={kind:'custom',name:old.name||'自訂目標',target:Number(old.target)||30,done:Number(old.done)||0,unit:old.unit||'項'};
+  else {
+    const s=S.subjects[0];
+    S.plan.targets[i]={kind:'subject',subjectId:old.subjectId||(s&&s.id)||'',target:Number(old.target)||Math.max(1,(s&&s.chaps.length)||1)};
+  }
+  save(); renderSet();
+}
+function addTarget(){
+  const used=new Set((S.plan.targets||[]).map(t=>t.subjectId));
+  const s=S.subjects.find(x=>!used.has(x.id))||S.subjects[0];
+  S.plan.targets=S.plan.targets||[];
+  if(s)S.plan.targets.push({kind:'subject',subjectId:s.id,target:Math.max(1,s.chaps.length||1)});
+  else S.plan.targets.push({kind:'custom',name:'自訂目標',target:30,done:0,unit:'項'});
+  save(); renderSet();
+}
+function removeTarget(i){S.plan.targets.splice(i,1);save();renderSet();}
+function toggleRestDay(d,on){S.plan.restDays=S.plan.restDays||[]; if(on&&!S.plan.restDays.includes(d))S.plan.restDays.push(d); if(!on)S.plan.restDays=S.plan.restDays.filter(x=>x!==d); save(); renderSet();}
 function toggleEngApp(id,v){S.eng.apps[id]=v; if(!v&&S.eng.primary===id){const f=ENGAPPS.find(a=>S.eng.apps[a.id]);S.eng.primary=f?f.id:null;} save();renderSet();}
 function updHead(){const ri=rankInfo();document.getElementById('hsub').innerHTML = (S.student?esc(S.student)+'・':'')+`忍者等級：<b style="color:var(--brand)">${ri.r.e} ${ri.r.n}</b>　<span style="opacity:.85">🏅${ri.xp} 修行經驗</span>`;}
 function exportData(){const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download='學習計畫備份_'+ymd(new Date())+'.json';a.click();URL.revokeObjectURL(u);}
-function importData(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const j=JSON.parse(r.result);if(!j.subjects)throw 0;S=j;save();alert('匯入成功 ✓');go('today');}catch(e){alert('檔案格式不正確');}};r.readAsText(f);inp.value='';}
+function importData(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const j=JSON.parse(r.result);if(!j||typeof j!=='object'||!Array.isArray(j.subjects))throw new Error('格式錯誤：無效的科目資料');S=norm(j);save();alert('匯入成功 ✓');go('today');}catch(e){alert('匯入失敗：'+(e.message||'檔案格式不正確'));}};r.readAsText(f);inp.value='';}
 
 /* ---------- 友善時間選擇（時/分下拉 + 時長快速鍵）---------- */
 function timeSelects(pfx,value){
