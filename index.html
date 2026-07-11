@@ -647,6 +647,7 @@ function norm(j){ j.subjects=j.subjects||[]; j.routine=j.routine||[]; j.events=j
   j.plan=j.plan||defaultPlan(); j.plan.targets=j.plan.targets||[]; j.plan.restDays=j.plan.restDays||[]; if(!j.plan.start)j.plan.start=defaultPlan().start; if(!j.plan.end)j.plan.end=defaultPlan().end; if(!j.plan.dailyMax)j.plan.dailyMax=180; if(!('excludeWeekends'in j.plan))j.plan.excludeWeekends=true;
   j.plan.targets.forEach(t=>{if(!t.kind)t.kind='subject'; if(t.kind==='custom'&&!t.unit)t.unit='項';});
   j.eng=j.eng||{}; j.eng.apps=j.eng.apps||{}; if(!('note'in j.eng))j.eng.note=''; if(!('primary'in j.eng))j.eng.primary=null;
+  j.plannerJutsu=j.plannerJutsu||[]; j.xpLedger=j.xpLedger||{}; j.ninjaBase=j.ninjaBase||{};
   j.subjects.forEach(s=>{
     s.chaps=(s.chaps||[]).map(c=>typeof c==='string'?{n:c,done:false}:c);
     if(!s.grade){ s.grade = s.group==='預習'?'國二' : '國一'; if(s.group&&!('tag'in s))s.tag=s.group; }
@@ -739,40 +740,83 @@ const Ninja=(function(){
   function backfill(app,xp,o){var w=get();if(w.seen[app])return w;o=o||{};w.xp+=xp;w.bySrc[app]=(w.bySrc[app]||0)+xp;w.correct+=(o.correct||0);w.units+=(o.unit||0);w.seen[app]=1;put(w);return w;}
   return {get:get,put:put,gain:gain,backfill:backfill};
 })();
+/* ===== 忍者等級：只看「本計畫」的修行值（bySrc.planner），三年慢慢爬 =====
+   修行值來源：每日任務打勾 +5、當天全達成 +20（火之意志）、精熟章節 +30、番茄鐘專注 +10。
+   跨App英語 App 的經驗另計、只做鼓勵，不灌進本計畫等級。 */
 const NRANKS=[
-  {n:'學院學生',e:'🍃',x:0,d:'修行才剛開始，衝吧！'},
-  {n:'下忍',e:'🥷',x:300,d:'正式成為忍者！'},
-  {n:'中忍',e:'🗡️',x:1000,d:'升上中忍，繼續加油！'},
-  {n:'上忍',e:'⚔️',x:2500,d:'實力堅強的上忍！'},
-  {n:'精英上忍',e:'⚡',x:5000,d:'再拚一點就是傳說！'},
-  {n:'傳說之忍',e:'🌟',x:9000,d:'距離火影只差一步！'},
-  {n:'火影',e:'🔥',x:15000,d:'木葉最強，你就是火影！'}
+  {n:'學院新生',  e:'🍃',x:0,     d:'忍者學校報到，修行才剛開始！'},
+  {n:'忍者學員',  e:'📗',x:600,   d:'扎穩基本功，一步一腳印。'},
+  {n:'下忍',      e:'🥷',x:2000,  d:'正式成為忍者，出任務囉！'},
+  {n:'中忍',      e:'🗡️',x:4500,  d:'能獨當一面的中忍。'},
+  {n:'特別上忍',  e:'🎯',x:8000,  d:'某個領域特別厲害！'},
+  {n:'上忍',      e:'⚔️',x:13000, d:'實力堅強的上忍。'},
+  {n:'精英上忍',  e:'⚡',x:19000, d:'頂尖好手，眾人的榜樣。'},
+  {n:'暗部',      e:'🐺',x:27000, d:'木葉的暗影精銳。'},
+  {n:'影之候補',  e:'🌟',x:37000, d:'距離「影」只差一步！'},
+  {n:'傳說之忍',  e:'🐉',x:48000, d:'名震忍界的傳說。'},
+  {n:'火影',      e:'🔥',x:60000, d:'木葉最強，你就是火影！'}
 ];
 function rankIdxOf(xp){let i=0;for(let k=0;k<NRANKS.length;k++){if(xp>=NRANKS[k].x)i=k;}return i;}
-function rankInfo(){const w=Ninja.get(),xp=w.xp,i=rankIdxOf(xp),r=NRANKS[i],nx=NRANKS[i+1];
-  return {xp,i,r,nx,need:nx?nx.x-xp:0,into:xp-r.x,span:nx?nx.x-r.x:1,w};}
-/* 絕招圖鑑：升等或達成里程碑就學會 */
+/* 本計畫自己賺到的修行值（不含跨App英語）*/
+function plannerXPval(){return (Ninja.get().bySrc||{})['planner']||0;}
+function rankInfo(){const xp=plannerXPval(),i=rankIdxOf(xp),r=NRANKS[i],nx=NRANKS[i+1];
+  return {xp,i,r,nx,need:nx?nx.x-xp:0,into:xp-r.x,span:nx?nx.x-r.x:1};}
+/* 本計畫累積成就（絕招條件用）*/
+function totalChapsDone(){let n=0;(S.subjects||[]).forEach(s=>s.chaps.forEach(c=>{if(c.done)n++;}));return n;}
+function totalTasksDone(){let n=0;for(const k in (S.checks||{})){n+=Object.keys(S.checks[k]).length;}return n;}
+function totalFullDays(){let n=0;for(const k in (S.checks||{})){const d=new Date(k+'T00:00:00');if(dayProgress(k,blocksFor(d)).all)n++;}return n;}
+function plannerStats(){const xp=plannerXPval(),b=S.ninjaBase||{};return {xp,rankIdx:rankIdxOf(xp),streak:streakDays(),
+  chaps:Math.max(0,totalChapsDone()-(b.chaps||0)),tasks:Math.max(0,totalTasksDone()-(b.tasks||0)),fullDays:Math.max(0,totalFullDays()-(b.fullDays||0))};}
+/* 重置本計畫忍者修行：等級/修行值/絕招歸零，重新走三年（不動科目/進度打勾，也不動其他英語App）*/
+function resetNinja(){
+  if(!confirm('重置忍者修行？\n\n本計畫的等級會回到「學院新生」、修行值歸零、絕招重新蒐集。\n你的科目、作息、進度打勾都不受影響，其他英語 App 的經驗也不受影響。')) return;
+  var w=Ninja.get(), mine=(w.bySrc&&w.bySrc.planner)||0;
+  w.xp=Math.max(0,(w.xp||0)-mine); if(w.bySrc)w.bySrc.planner=0; w.seen=w.seen||{}; w.seen.planner=1; Ninja.put(w);
+  S.ninjaBase={tasks:totalTasksDone(),chaps:totalChapsDone(),fullDays:totalFullDays()};
+  S.plannerJutsu=[]; // 修行值加分帳本 xpLedger 保留：過去已計的任務不會重複給分，只算往後的努力
+  save(); renderSet(); toast('🔄 忍者修行已重置，從學院新生重新出發！');
+}
+/* 絕招圖鑑（21 招）：條件全部以「本計畫努力」為準，橫跨三年慢慢解鎖 */
 const JUTSU=[
-  {id:'bunshin',    n:'分身之術',         e:'🌀', cond:(w,c)=>w.correct>=50,  hint:'答對 50 題'},
-  {id:'henge',      n:'變身術',           e:'💨', cond:(w,c)=>c.streak>=3,    hint:'連續修行 3 天'},
-  {id:'goukakyu',   n:'火遁·豪火球之術',  e:'🔥', cond:(w,c)=>w.units>=1,     hint:'完成 1 個單元/關卡'},
-  {id:'rasengan',   n:'螺旋丸',           e:'🌪️', cond:(w,c)=>w.xp>=1500,     hint:'累積 1500 修行經驗'},
-  {id:'chidori',    n:'千鳥',             e:'⚡', cond:(w,c)=>c.rankIdx>=3,   hint:'升上上忍'},
-  {id:'kagebunshin',n:'影分身之術',       e:'👥', cond:(w,c)=>w.correct>=300, hint:'答對 300 題'},
-  {id:'kuchiyose',  n:'通靈之術',         e:'🐸', cond:(w,c)=>c.streak>=7,    hint:'連續修行 7 天'},
-  {id:'rasenshuriken',n:'風遁·螺旋手裏劍',e:'🌟', cond:(w,c)=>c.rankIdx>=4,   hint:'升上精英上忍'},
-  {id:'sennin',     n:'仙人模式',         e:'🍥', cond:(w,c)=>w.xp>=5000,     hint:'累積 5000 修行經驗'},
-  {id:'edo',        n:'穢土轉生之術',     e:'💀', cond:(w,c)=>w.correct>=800, hint:'答對 800 題'},
-  {id:'amaterasu',  n:'天照',             e:'☀️', cond:(w,c)=>c.rankIdx>=5,   hint:'升上傳說之忍'},
-  {id:'hiraishin',  n:'飛雷神之術',       e:'⚡', cond:(w,c)=>c.rankIdx>=6,   hint:'成為火影'}
+  // —— 入門：頭幾週就能拿到，給成就感 ——
+  {id:'bunshin',      n:'分身之術',        e:'🌀', cond:s=>s.tasks>=10,    hint:'完成 10 項任務'},
+  {id:'henge',        n:'變身術',          e:'💨', cond:s=>s.streak>=3,    hint:'連續修行 3 天'},
+  {id:'goukakyu',     n:'火遁·豪火球之術', e:'🔥', cond:s=>s.chaps>=1,     hint:'精熟第 1 個章節'},
+  {id:'shuriken',     n:'手裏劍術',        e:'🎯', cond:s=>s.fullDays>=1,  hint:'完成 1 個「全達成日」'},
+  // —— 初階：一兩個月 ——
+  {id:'kawarimi',     n:'替身之術',        e:'🪵', cond:s=>s.tasks>=40,    hint:'完成 40 項任務'},
+  {id:'kuchiyose',    n:'通靈之術',        e:'🐸', cond:s=>s.streak>=7,    hint:'連續修行 7 天'},
+  {id:'rasengan',     n:'螺旋丸',          e:'🌪️', cond:s=>s.xp>=4500,     hint:'累積 4500 修行值'},
+  {id:'konohasenpu',  n:'木葉旋風',        e:'🍃', cond:s=>s.chaps>=15,    hint:'精熟 15 個章節'},
+  // —— 中階：一個學期 ——
+  {id:'chidori',      n:'千鳥',            e:'⚡', cond:s=>s.rankIdx>=4,   hint:'升上特別上忍'},
+  {id:'kagebunshin',  n:'影分身之術',      e:'👥', cond:s=>s.tasks>=120,   hint:'完成 120 項任務'},
+  {id:'sabaku',       n:'沙瀑送葬',        e:'🏜️', cond:s=>s.streak>=14,   hint:'連續修行 14 天'},
+  {id:'sennin',       n:'仙人模式',        e:'🍥', cond:s=>s.xp>=13000,    hint:'累積 13000 修行值'},
+  // —— 高階：一整學年 ——
+  {id:'rasenshuriken',n:'風遁·螺旋手裏劍', e:'🌟', cond:s=>s.rankIdx>=6,   hint:'升上精英上忍'},
+  {id:'kirin',        n:'麒麟',            e:'🌩️', cond:s=>s.streak>=30,   hint:'連續修行 30 天'},
+  {id:'susanoo',      n:'須佐能乎',        e:'🗿', cond:s=>s.chaps>=60,    hint:'精熟 60 個章節'},
+  {id:'kamui',        n:'神威',            e:'🌀', cond:s=>s.fullDays>=60,  hint:'完成 60 個「全達成日」'},
+  // —— 傳說：兩三年功力 ——
+  {id:'amaterasu',    n:'天照',            e:'☀️', cond:s=>s.rankIdx>=7,   hint:'升上暗部'},
+  {id:'edo',          n:'穢土轉生之術',    e:'💀', cond:s=>s.tasks>=300,   hint:'完成 300 項任務'},
+  {id:'hiraishin',    n:'飛雷神之術',      e:'⚡', cond:s=>s.rankIdx>=8,   hint:'升上影之候補'},
+  {id:'rikudo',       n:'六道仙術',        e:'🌈', cond:s=>s.rankIdx>=9,   hint:'升上傳說之忍'},
+  {id:'hokage',       n:'火之意志',        e:'🔥', cond:s=>s.rankIdx>=10,  hint:'成為火影'}
 ];
-function jutsuCtx(){const w=Ninja.get();return {w,ctx:{streak:streakDays(),rankIdx:rankIdxOf(w.xp)}};}
 function checkJutsu(silent){
-  const {w,ctx}=jutsuCtx(); let newly=[];
-  JUTSU.forEach(j=>{ if(w.jutsu.indexOf(j.id)<0 && j.cond(w,ctx)){w.jutsu.push(j.id);newly.push(j);} });
-  if(newly.length){Ninja.put(w); if(!silent)newly.forEach(j=>toast('🎉 學會絕招：'+j.e+' '+j.n));}
+  S.plannerJutsu=S.plannerJutsu||[];
+  const st=plannerStats(); let newly=[];
+  JUTSU.forEach(j=>{ if(S.plannerJutsu.indexOf(j.id)<0 && j.cond(st)){S.plannerJutsu.push(j.id);newly.push(j);} });
+  if(newly.length){save(); if(!silent)newly.forEach(j=>toast('🎉 學會絕招：'+j.e+' '+j.n));}
   return newly;
 }
+/* 每日任務／全達成的修行值（用帳本防止取消再打勾灌水）*/
+function _led(k){S.xpLedger=S.xpLedger||{};return !!S.xpLedger[k];}
+function _ledMark(k){S.xpLedger=S.xpLedger||{};S.xpLedger[k]=1;}
+function awardTask(key,bk){const lk='t|'+key+'|'+bk;if(_led(lk))return;_ledMark(lk);Ninja.gain(5,'planner');}
+function awardFullDay(key){const lk='f|'+key;if(_led(lk))return;_ledMark(lk);Ninja.gain(20,'planner');}
 function awardXP(n,opts){Ninja.gain(n,'planner',opts);checkJutsu(false);triggerConfetti();}
 function triggerConfetti() {
   const canvas = document.createElement('canvas');
@@ -838,14 +882,19 @@ const APPNAME={planner:'火影修行',pinju:'英語拼句',biology:'學測生物
   vocab2000:'國中2000單字',vocab1200:'國小1200單字',vocab6000:'高中6000單字',toeic:'多益單字',toefl:'托福單字',gsatcore:'學測必考單字',
   capqb:'會考題庫',gsatqb:'學測題庫',capreview:'會考複習',gsatreview:'學測複習',phrase:'英語片語',hsgrammar:'高中文法',jeng:'國中英文題庫'};
 function jutsuHtml(){
-  const w=Ninja.get(), have=new Set(w.jutsu), gained=JUTSU.filter(j=>have.has(j.id)).length;
+  S.plannerJutsu=S.plannerJutsu||[];
+  const have=new Set(S.plannerJutsu), gained=JUTSU.filter(j=>have.has(j.id)).length;
   const cells=JUTSU.map(j=>{const on=have.has(j.id);
     return `<div class="jutsu ${on?'on':'off'}"><div class="je">${on?j.e:'❓'}</div><div class="jn">${on?esc(j.n):'？？？'}</div><div class="jh">${on?'已學會':esc(j.hint)}</div></div>`;}).join('');
-  const src=Object.entries(w.bySrc||{}).filter(e=>e[1]>0).sort((a,b)=>b[1]-a[1]);
-  const srcHtml=src.length?`<h4 style="margin-top:15px">🏅 修行經驗來源</h4><div class="xpsrc">${src.map(e=>`<span>${esc(APPNAME[e[0]]||e[0])} <b>+${e[1]}</b></span>`).join('')}</div>`:'';
+  // 跨App英語家族修行：只做鼓勵，不計入本計畫等級
+  const w=Ninja.get(); const cross=Math.max(0,(w.xp||0)-plannerXPval());
+  const crossHtml=cross>0?`<div style="margin-top:15px;padding:11px 13px;background:#fdf1df;border:1px solid #f0dcbf;border-radius:12px">
+      <div style="font-size:13px;font-weight:800;color:#8a5a1a">🔤 額外英語修行 <span style="float:right;color:var(--brand)">+${cross}</span></div>
+      <div style="font-size:11.5px;color:#8a7355;margin-top:5px;line-height:1.65">這是你在家族英語 App 累積的修行，另外記錄鼓勵你 👍。<b>本計畫的忍者等級只看上面這個計畫裡的學習</b>，扎實走完國中三年，才能真正成為火影 🔥</div>
+    </div>`:'';
   return `<div class="card" style="margin-top:12px">
     <h4>🥷 絕招圖鑑 <span style="float:right;color:var(--brand)">${gained}/${JUTSU.length} 招</span></h4>
-    <div class="jgrid">${cells}</div>${srcHtml}</div>`;
+    <div class="jgrid">${cells}</div>${crossHtml}</div>`;
 }
 let pomoDuration = 25 * 60;
 let pomoSeconds = 25 * 60;
@@ -1191,8 +1240,10 @@ function renderTodayStatus(d,key,blks,doneBlk){
   </div>`;
 }
 function markAllToday(key){
-  const blks=blocksFor(cur).filter(b=>b.type!=='rest'); blks.forEach(b=>setChecked(key,b._k,true));
-  if(ENGAPPS.some(a=>S.eng.apps[a.id])) setChecked(key,'eng_'+key,true);
+  const blks=blocksFor(cur).filter(b=>b.type!=='rest'); blks.forEach(b=>{setChecked(key,b._k,true);awardTask(key,b._k);});
+  if(ENGAPPS.some(a=>S.eng.apps[a.id])){setChecked(key,'eng_'+key,true);awardTask(key,'eng_'+key);}
+  if(dayProgress(key,blocksFor(cur)).all)awardFullDay(key);
+  save(); checkJutsu(false);
   renderToday(); toast('🎉 今日任務全部完成！');
   triggerConfetti();
 }
@@ -1243,9 +1294,11 @@ function toggleTask(key,bk,ev){
   const checked=!isChecked(key,bk);
   setChecked(key,bk,checked);
   if(checked){
+    awardTask(key,bk);
     const blks=blocksFor(cur);
     const P=dayProgress(key,blks);
-    if(P.all){triggerConfetti();toast('🎉 今日任務全數達成！');}
+    if(P.all){awardFullDay(key);triggerConfetti();toast('🎉 今日任務全數達成！＋火之意志 🔥');}
+    save(); checkJutsu(false);
   }
   renderToday();
 }
@@ -1439,7 +1492,7 @@ function renderProg(){
       <div class="rke">${ri.r.e}</div>
       <div class="rkt"><b>忍者等級：${ri.r.n}</b><span>${ri.r.d}</span>
         <div class="xpbar"><i style="width:${rkpct}%"></i></div>
-        <span class="xpline">🏅 修行經驗 <b>${ri.xp}</b>${ri.nx?`　🎯 離「${ri.nx.n}」還差 <b>${ri.need}</b>`:'　👑 已達最高，你就是火影！'}</span></div>
+        <span class="xpline">🏅 本計畫修行值 <b>${ri.xp}</b>${ri.nx?`　🎯 離「${ri.nx.n}」還差 <b>${ri.need}</b>`:'　👑 已達最高，你就是火影！'}</span></div>
     </div>
     ${jutsuHtml()}
     ${renderHeatmapHtml()}
@@ -1588,6 +1641,8 @@ function renderSet(){
   <div class="card setrow">
     <h4>🧰 其他</h4>
     <label class="chk"><input type="checkbox" id="onbk" onchange="localStorage.setItem('sp_onb',this.checked?'':'1')"><span>下次開啟顯示新手引導</span></label>
+    <button class="btn ghost mt" style="color:var(--brand)" onclick="resetNinja()">🔄 重置忍者修行（等級回學院新生，重新走三年）</button>
+    <p style="margin-top:6px">只歸零<b>本計畫的忍者等級、修行值與絕招</b>，讓孩子從「學院新生」重新出發。<b>不會</b>動到你的科目、作息、進度打勾，也<b>不會</b>影響其他英語 App 的經驗。</p>
     <button class="btn ghost mt" style="color:var(--cram)" onclick="if(confirm('清空全部資料（科目、作息、進度、打勾）？此動作無法復原，建議先匯出備份。')){localStorage.removeItem(KEY);S=seed();save();go('today');toast('🧹 已清空，成為空白計畫');}">🗑️ 清空全部資料（回到空白）</button>
   </div>
 
@@ -1595,7 +1650,7 @@ function renderSet(){
     <b>💡 給家長的使用建議（忍者修行版）</b><br>
     ①「修行表」先把每週固定的<b>道場(補習)</b>和<b>修行(自習)</b>時段排好，之後每天會自動帶出。<br>
     ② 修行時段記得<b>指定科目</b>，孩子讀完按「⚡習得忍術」就會累積「忍者等級」分頁的進度。<br>
-    ③ 每天讓孩子自己<b>完成任務打勾</b>，連續達成會累積 🔥 <b>火之意志</b>；總進度越高，忍者等級越高（學生→下忍→中忍→上忍→火影）。<br>
+    ③ 每天讓孩子自己<b>完成任務打勾</b>，連續達成會累積 🔥 <b>火之意志</b>。忍者等級<b>只看這個計畫裡的努力</b>（打勾 +5、當天全達成 +20、精熟章節 +30、番茄鐘 +10），從「學院新生」一路慢慢爬到「火影」，是<b>國中三年</b>的長期目標，不會一下就滿級。<br>
     ④ 暑假建議<b>複習 : 預習 ≈ 6:4</b>，先把國一觀念（尤其數學）補穩，再輕鬆預習國二。<br>
     ⑤ 每天英語忍術 15–20 分鐘，長期比考前抱佛腳更有效。
   </div>`;
@@ -1812,7 +1867,7 @@ if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch
       <div style="display:flex;gap:11px;align-items:flex-start"><span style="font-size:20px">📆</span><div><b>任務曆</b>：整月一眼看完，色點標出每天的任務，點日期看細節</div></div>
       <div style="display:flex;gap:11px;align-items:flex-start"><span style="font-size:20px">📅</span><div><b>今日</b>：每天的道場、修行、英語忍術，完成自己打勾 ✓</div></div>
       <div style="display:flex;gap:11px;align-items:flex-start"><span style="font-size:20px">🗓️</span><div><b>修行表</b>：排每週固定的道場(補習)／修行(自習)時段</div></div>
-      <div style="display:flex;gap:11px;align-items:flex-start"><span style="font-size:20px">🥷</span><div><b>忍者等級</b>：國一～國三 七大科章節，習得越多、等級越高</div></div>
+      <div style="display:flex;gap:11px;align-items:flex-start"><span style="font-size:20px">🥷</span><div><b>忍者等級</b>：每天完成計畫任務累積修行值，三年慢慢從學院新生爬到火影，並蒐集 21 種絕招</div></div>
       <div style="display:flex;gap:11px;align-items:flex-start"><span style="font-size:20px">🔤</span><div><b>英語忍術</b>：接上你們家的英語 App，每天一點不遺忘</div></div>
     </div>
     目前是<b>空白</b>的，兩種開始方式：到「修行表」自己排時段、到「忍者等級」按<b>📚載入國中三年科目範本</b>；也可到「設定」載入完整示範參考。</div>
