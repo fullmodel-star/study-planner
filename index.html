@@ -1958,5 +1958,46 @@ if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch
   navigator.serviceWorker.addEventListener('controllerchange',function(){if(refreshing)return;refreshing=true;location.reload();});
 })();
 </script>
+<!--LINE_SHARE_START-->
+<style>
+.lineShareFab{width:32px;height:32px;border-radius:50%;background:#06C755;border:none;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  padding:0;flex:0 0 auto;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.lineShareFab.lineShareFallback{position:absolute;top:50%;right:12px;transform:translateY(-50%);z-index:20}
+.lineShareFab:focus-visible{outline:2px solid #fff;outline-offset:2px}
+</style>
+<script>
+(function(){
+  var h = document.querySelector('header');
+  if(!h) return;
+  function isFlex(el){ var d = getComputedStyle(el).display; return d === 'flex' || d === 'inline-flex'; }
+  var row = null;
+  var candidates = [h];
+  for(var i=0;i<h.children.length;i++) candidates.push(h.children[i]);
+  for(var i=0;i<candidates.length;i++){
+    if(isFlex(candidates[i]) && candidates[i].children.length > 0){ row = candidates[i]; break; }
+  }
+  var btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'lineShareFab';
+  btn.setAttribute('aria-label','分享到LINE');
+  btn.title = '分享到LINE';
+  btn.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="#fff" d="M12 3.5c-5.25 0-9.5 3.48-9.5 7.77 0 3.85 3.37 7.08 7.93 7.7.31.07.73.2.84.47.1.24.06.63.03.87l-.13.83c-.04.24-.19.95.83.52 1.02-.44 5.5-3.24 7.5-5.55A6.9 6.9 0 0 0 21.5 11.3c0-4.3-4.25-7.8-9.5-7.8Z"/></svg>';
+  btn.onclick = function(){
+    var lineUrl = "https://social-plugins.line.me/lineit/share?url="
+      + encodeURIComponent('https://fullmodel-star.github.io/study-planner/') + "&text=" + encodeURIComponent('學習計畫日曆 - 火影主題三年計畫，一起來排讀書計畫！');
+    window.open(lineUrl, "_blank", "noopener");
+  };
+  if(row){
+    row.appendChild(btn);
+  } else {
+    var cs = getComputedStyle(h);
+    if(cs.position === 'static') h.style.position = 'relative';
+    btn.className += ' lineShareFallback';
+    h.appendChild(btn);
+  }
+})();
+</script>
+<!--LINE_SHARE_END-->
 </body>
 </html>
