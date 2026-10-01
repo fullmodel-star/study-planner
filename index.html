@@ -290,7 +290,7 @@
   .tstat .ring span{width:44px;height:44px;border-radius:50%;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:13.5px;font-weight:900;color:var(--ink)}
   .tstat.alldone .ring span{background:#16a34a;color:#fff}
   .tstat .ti{min-width:0}
-  .tstat .ti b{display:block;font-size:15.5px}
+  .tstat .ti>b{display:block;font-size:15.5px}
   .tstat .ti span{font-size:12px;color:var(--muted);line-height:1.5}
   .tstat.alldone .ti span{color:rgba(255,255,255,.92)}
   .tstat .chk{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
@@ -646,7 +646,7 @@ function seed(){
     student:'小朋友', goal:'國中三年學習計畫',
     subjects:[], routine:[], events:{}, checks:{},
     plan:defaultPlan(),
-    eng:{apps:{v2000:true, v1200:true, capqb:true}, note:'每天先完成單字複習 + 一點題庫／文法，暑假才不會忘光。', primary:'v2000'}
+    eng:{apps:{v2000:true, v1200:true, capqb:true}, note:'每天先完成單字複習 + 一點題庫／文法，學過的才不會忘光。', primary:'v2000'}
   };
 }
 function defaultPlan(){
@@ -683,7 +683,7 @@ function load(){try{const j=JSON.parse(localStorage.getItem(KEY));if(j&&j.subjec
 function norm(j){ j.subjects=j.subjects||[]; j.routine=j.routine||[]; j.events=j.events||{}; j.checks=j.checks||{}; j.recentSubj=j.recentSubj||[];
   j.plan=j.plan||defaultPlan(); j.plan.targets=j.plan.targets||[]; j.plan.restDays=j.plan.restDays||[]; if(!j.plan.start)j.plan.start=defaultPlan().start; if(!j.plan.end)j.plan.end=defaultPlan().end; if(!j.plan.dailyMax)j.plan.dailyMax=180; if(!('excludeWeekends'in j.plan))j.plan.excludeWeekends=true;
   j.plan.targets.forEach(t=>{if(!t.kind)t.kind='subject'; if(t.kind==='custom'&&!t.unit)t.unit='項';});
-  j.eng=j.eng||{}; j.eng.apps=j.eng.apps||{}; if(!('note'in j.eng))j.eng.note=''; if(!('primary'in j.eng))j.eng.primary=null;
+  j.eng=j.eng||{}; j.eng.apps=j.eng.apps||{}; if(!('note'in j.eng))j.eng.note=''; if(j.eng.note==='每天先完成單字複習 + 一點題庫／文法，暑假才不會忘光。')j.eng.note='每天先完成單字複習 + 一點題庫／文法，學過的才不會忘光。'; if(!('primary'in j.eng))j.eng.primary=null;
   j.plannerJutsu=j.plannerJutsu||[]; j.xpLedger=j.xpLedger||{}; j.ninjaBase=j.ninjaBase||{};
   j.subjects.forEach(s=>{
     s.chaps=(s.chaps||[]).map(c=>typeof c==='string'?{n:c,done:false}:c);
@@ -1372,7 +1372,7 @@ function renderEng(d,key){
   const totalDue=stats.reduce((n,x)=>n+(x.due||0),0);
   const hasData=stats.some(x=>x.text&&x.text!=='尚未開始');
   const headline = totalDue>0 ? `🔁 英語家族今日待複習 <b>${totalDue}</b>，先把它清完！`
-    : (hasData? '✅ 今日待複習都清完了，太強了！' : esc(S.eng.note||'每天固定練一點英語，暑假不遺忘。'));
+    : (hasData? '✅ 今日待複習都清完了，太強了！' : esc(S.eng.note||'每天固定練一點英語，學過的不遺忘。'));
   // 每支勾選的 App 各自一列：可開啟＋顯示待複習/錯題
   const appRows=stats.map(x=>`<a class="engapp" href="${engHref(x.a,x.due)}" target="_blank" rel="noopener">${x.a.id===prim.id?'<span class="star">主打</span>':''}<span class="en">${esc(x.a.name)}</span><span class="es${x.due?' due':''}">${x.text?esc(x.text):'開啟 ›'}</span></a>`).join('');
   const primDue=(stats.find(x=>x.a.id===prim.id)||{}).due||0;
