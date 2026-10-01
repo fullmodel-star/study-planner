@@ -1,6 +1,6 @@
 {
- "name": "火影修行計畫・學習日曆",
- "short_name": "火影修行",
+ "name": "忍者修行計畫・學習日曆",
+ "short_name": "忍者修行",
  "start_url": "./index.html",
  "scope": "./",
  "display": "standalone",
