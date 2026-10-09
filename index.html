@@ -2105,5 +2105,77 @@ if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch
 })();
 </script>
 <!--RIDGELINE_INSTALL_END-->
+<!--FABSAFE_START-->
+<style>
+/* 安裝鈕：不再浮在內容上（上鎖外殼除外，見下） */
+html:not(.fs-shell) .rdg-install.rdg-fixed{position:static!important;transform:none!important;left:auto!important;bottom:auto!important;
+  margin:20px auto calc(20px + env(safe-area-inset-bottom,0px))!important;max-width:340px;width:auto}
+/* ❓ 說明／⬅ 入口：收進頁首下方的工具列，跟著頁面走 */
+.fabsafe-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px auto 4px;padding:0 16px;max-width:1100px;box-sizing:border-box}
+.fabsafe-bar .engwc-help,.fabsafe-bar .engwc-home,.fabsafe-bar .enghb-home,.fabsafe-bar .rvc-fab{position:static!important;left:auto!important;bottom:auto!important;
+  box-shadow:none!important;height:36px;min-width:36px;margin:0}
+/* 上鎖外殼（lock_app.js）：解鎖後 App 跑在全螢幕 iframe 裡，外層安裝鈕若繼續浮著就會壓在 App 上
+   → 安裝鈕只在密碼頁顯示，解鎖後收起（App 裡要裝隨時回密碼頁就有；已安裝的人本來就不會看到） */
+html.fs-unlocked .rdg-install{display:none!important}
+</style>
+<script>
+(function(){
+  if(window.__fabsafe)return; window.__fabsafe=1;
+  var shell=!!window.__LOCK;
+  if(shell){
+    document.documentElement.classList.add('fs-shell');
+    /* 解鎖時外殼會 document.body.innerHTML='' → 寫在 body 裡的 <style> 會一起被清掉，規則要掛到 <head> */
+    var st=document.createElement('style'); st.textContent='html.fs-unlocked .rdg-install{display:none!important}';
+    (document.head||document.documentElement).appendChild(st);
+    var watch=function(){ if(document.querySelector('body>iframe,iframe[srcdoc]')) document.documentElement.classList.add('fs-unlocked'); };
+    watch();
+    if(window.MutationObserver) new MutationObserver(watch).observe(document.documentElement,{childList:true,subtree:true});
+    return;   /* 外殼沒有 ❓／⬅ 入口（那些在 iframe 裡的 App 自己處理） */
+  }
+  var SEL='.engwc-help,.engwc-home,.enghb-home,.rvc-fab';
+  function anchor(){
+    /* 工具列插在第一個頁首後面；找不到頁首就放在 body 最前面 */
+    return document.querySelector('header.rl-appbar,.rl-appbar,body>header,header');
+  }
+  function bar(){
+    var b=document.querySelector('.fabsafe-bar'); if(b)return b;
+    b=document.createElement('div'); b.className='fabsafe-bar';
+    var a=anchor();
+    if(a&&a.parentNode){ a.parentNode.insertBefore(b,a.nextSibling); }
+    else { document.body.insertBefore(b,document.body.firstChild); }
+    return b;
+  }
+  function dock(){
+    var btns=document.querySelectorAll(SEL); if(!btns.length)return;
+    var b=bar();
+    for(var i=0;i<btns.length;i++){ if(btns[i].parentNode!==b) b.appendChild(btns[i]); }
+    /* ❓ 放在最後：回入口是主要動作。只在順序不對時才搬，避免觸發自己的監看 */
+    var h=b.querySelector('.engwc-help'); if(h&&h!==b.lastElementChild) b.appendChild(h);
+  }
+  /* 安裝鈕只靠 CSS 改成一般區塊（它本來就掛在 body 最後），不用搬動。
+     例外：App 自己寫的 #installBar 若是 fixed（903 拼句），改成一般區塊，放到目前畫面（.screen.on 或 main）最後 */
+  function ownBar(){
+    var ib=document.getElementById('installBar'); if(!ib||ib.__fs)return;
+    if(getComputedStyle(ib).position!=='fixed')return;
+    ib.__fs=1;
+    ib.style.cssText+=';position:static;left:auto;bottom:auto;transform:none;width:auto;max-width:640px;margin:12px max(16px,calc((100% - 640px)/2))';
+    var host=document.querySelector('#learn')||document.querySelector('main');
+    if(host){ if(ib.parentNode!==host) host.appendChild(ib); }
+    else { var a=anchor(); if(a&&a.parentNode&&a.nextSibling!==ib) a.parentNode.insertBefore(ib,a.nextSibling); }  /* 沒有主內容區就放頁首下面，不要留在頁首上方 */
+  }
+  function run(){ dock(); ownBar(); }
+  /* 原注入器在 load / 延遲 700ms 後才長出按鈕 → 多掃幾次，並監看之後才加進來的 */
+  function start(){
+    run(); setTimeout(run,800); setTimeout(run,2000);
+    if(window.MutationObserver){
+      var mo=new MutationObserver(function(){ run(); });
+      mo.observe(document.body,{childList:true});
+      setTimeout(function(){ mo.disconnect(); },15000);
+    }
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',start); else start();
+})();
+</script>
+<!--FABSAFE_END-->
 </body>
 </html>
