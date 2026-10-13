@@ -674,7 +674,8 @@ function seed(){
 function defaultPlan(){
   const s=new Date(); s.setHours(0,0,0,0);
   const e=new Date(s); e.setDate(e.getDate()+55);
-  return {name:'暑假總目標',start:ymd(s),end:ymd(e),excludeWeekends:true,restDays:[0],dailyMax:180,targets:[]};
+  const mo=s.getMonth()+1, nm=(mo===7||mo===8)?'暑假總目標':(mo===1||mo===2)?'寒假總目標':'這個階段的總目標';
+  return {name:nm,start:ymd(s),end:ymd(e),excludeWeekends:true,restDays:[0],dailyMax:180,targets:[]};
 }
 /* 一鍵載入：國中三年科目範本 */
 function loadFramework(){
@@ -1150,7 +1151,16 @@ function renderQuote() {
 
 /* ---------- 導覽 ---------- */
 let TAB='month';
-function go(t){TAB=t;
+/* 返回鍵（2026-10-13）：切換分頁與開彈出層寫入瀏覽紀錄；手機返回鍵先關彈出層、再回上一個分頁，在首頁才離開 App */
+let navSkip=0, navQ=[], navClosing=false;
+function navPush(st){ if(navSkip){navQ.push(st);return} try{history.pushState(st,'')}catch(_){} }
+try{ if(!history.state||!history.state.t) history.replaceState({t:'month'},''); }catch(_){}
+window.addEventListener('popstate',e=>{
+  if(navSkip){navSkip--; if(!navSkip){const q=navQ;navQ=[];q.forEach(s=>{try{history.pushState(s,'')}catch(_){}})} return;}
+  if(document.getElementById('ov').classList.contains('show')){navClosing=true;closeOv();navClosing=false;return;}
+  const st=e.state||{t:'month'}; if(st.t&&st.t!==TAB) go(st.t,true);
+});
+function go(t,fromPop){if(!fromPop&&t!==TAB)navPush({t});TAB=t;
   ['month','today','week','prog','set'].forEach(x=>document.getElementById('tab-'+x).classList.toggle('hide',x!==t));
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
   document.getElementById('fab').classList.toggle('hide',t==='set'||t==='prog'||t==='month');
@@ -1172,7 +1182,18 @@ function quickPick(i){
   const t=QTPL[i]; closeOv();
   let sid=null;
   if(t[3]){ const m=S.subjects.filter(s=>s.cat===t[3]); sid=(m.find(s=>s.grade==='國二')||m[0]); sid=sid?sid.id:null; }
-  openEvent(null, ymd(cur), {type:t[2], subjectId:sid});
+  // 2026-10-13：科目清單是空的（新使用者）時，原本科目變「不指定」、標題變「修行(自習)」＝數學不見了。
+  // 改成標題先帶範本名稱，表單再提示一鍵載入科目範本並自動選回該科。
+  openEvent(null, ymd(cur), {type:t[2], subjectId:sid, label:(t[3]&&!sid)?t[1]:''}, t[3]&&!sid?t[3]:null);
+}
+function quickLoadSubjects(cat){
+  if(!S.subjects.length){ frameworkSubjects().forEach(s=>S.subjects.push(s)); save(); }
+  const m=S.subjects.filter(s=>s.cat===cat), pick=(m.find(s=>s.grade==='國二')||m[0]);
+  const sel=document.getElementById('msub'); if(!sel) return;
+  sel.innerHTML=subjOptions(pick?pick.id:null);
+  const hint=document.getElementById('subjHint'); if(hint) hint.remove();
+  mLblDirty=false; onSubjChange();
+  toast('📚 已載入國中三年科目範本'+(pick?'，科目選好「'+pick.name+'」':''));
 }
 
 /* ---------- 取得某日的所有區塊 ---------- */
@@ -1290,7 +1311,7 @@ function renderToday(){
   renderTimerUI();
   document.getElementById('todayCount').textContent = P.total? `學習 ${P.done}/${P.total}` : '';
   const list=document.getElementById('taskList');
-  if(!blks.length){ list.innerHTML=`<div class="card empty">今天還沒有任務 🍃<br>用右下 <b>＋</b> 發布當天任務，或到「修行表」排每週固定修行。<div class="dur" style="justify-content:center;margin-top:12px"><button type="button" onclick="copyDayFull(-1)">📋 複製昨天</button><button type="button" onclick="copyDayFull(-7)">📋 複製上週同天</button></div></div>`; return; }
+  if(!blks.length){ list.innerHTML=`<div class="card empty">${P.engReq?'除了上面的每日英語，今天沒有排其他任務 🍃':'今天還沒有任務 🍃'}<br>用右下 <b>＋</b> 發布當天任務，或到「修行表」排每週固定修行。<div class="dur" style="justify-content:center;margin-top:12px"><button type="button" onclick="copyDayFull(-1)">📋 複製昨天</button><button type="button" onclick="copyDayFull(-7)">📋 複製上週同天</button></div></div>`; return; }
   list.innerHTML=blks.map(b=>taskCard(b,key)).join('');
 }
 /* 今日完成儀表板：把當天所有任務＋每日英語一起算，確認今天都做完 */
@@ -1654,6 +1675,16 @@ function renderSet(){
   const restChecks=[1,2,3,4,5,6,0].map(d=>`<label class="chk" style="border-top:0;padding:5px 0"><input type="checkbox" ${(p.restDays||[]).includes(d)?'checked':''} onchange="toggleRestDay(${d},this.checked)"><span>${DAYW[d]}</span></label>`).join('');
   const targetHtml=(p.targets||[]).map((t,i)=>targetRowHtml(t,i)).join('')||'<p style="margin-top:8px">尚未設定總目標項目。先新增一個目標，月曆與週進度就會開始追蹤。</p>';
   b.innerHTML=`
+  <div class="card setrow" id="backupCard">
+    <h2>💾 備份 / 還原</h2>
+    <p>資料只存在這台裝置。換手機或清除瀏覽器前，先「匯出」存成檔案。</p>
+    <div style="display:flex;gap:10px;margin-top:11px">
+      <button class="btn ghost" style="flex:1" onclick="exportData()">⬇️ 匯出備份</button>
+      <button class="btn ghost" style="flex:1" onclick="document.getElementById('impf').click()">⬆️ 匯入</button>
+    </div>
+    <input type="file" id="impf" accept="application/json" class="hide" onchange="importData(this)">
+  </div>
+
   <div class="card setrow">
     <h2>👤 學生資料</h2>
     <div class="field"><label>名字</label><input type="text" value="${esc(S.student)}" onchange="S.student=this.value;save();updHead()"></div>
@@ -1698,16 +1729,6 @@ function renderSet(){
     <button class="btn ghost mt" onclick="printView('month')">🗓️ 本月月曆（貼牆版）</button>
     <button class="btn ghost mt" onclick="printView('week')">📋 每週作息表</button>
     <button class="btn ghost mt" onclick="printView('progress')">✅ 進度打勾清單</button>
-  </div>
-
-  <div class="card setrow">
-    <h2>💾 備份 / 還原</h2>
-    <p>資料只存在這台裝置。換手機或清除瀏覽器前，先「匯出」存成檔案。</p>
-    <div style="display:flex;gap:10px;margin-top:11px">
-      <button class="btn ghost" style="flex:1" onclick="exportData()">⬇️ 匯出備份</button>
-      <button class="btn ghost" style="flex:1" onclick="document.getElementById('impf').click()">⬆️ 匯入</button>
-    </div>
-    <input type="file" id="impf" accept="application/json" class="hide" onchange="importData(this)">
   </div>
 
   <div class="card setrow">
@@ -1791,6 +1812,8 @@ function timeSelects(pfx,value){
   for(let m=0;m<60;m+=5){const v=String(m).padStart(2,'0');mo+=`<option value="${v}" ${v===mm?'selected':''}>${v} 分</option>`;}
   return `<div class="tsel"><select id="${pfx}h" onchange="onTimeChange('${pfx}')">${ho}</select><span class="cln">:</span><select id="${pfx}m" onchange="onTimeChange('${pfx}')">${mo}</select></div>`;
 }
+/* 時間選單 06～23 時之後接 00～05 時（深夜），比較先後時 00～05 視為隔天 */
+function tmin(t){const [h,m]=String(t).split(':').map(Number);return ((h<6?h+24:h)*60)+(m||0);}
 function timeVal(pfx){const h=val(pfx+'h'),m=val(pfx+'m');return (h&&m)?h+':'+m:'';}
 function setEndFromStart(mins){
   const s=timeVal('st'); if(!s)return;
@@ -1859,6 +1882,7 @@ function lblEdited(){ mLblDirty=true; }
 function saveBlock(id){
   if(!mDays.length){alert('請至少選一個星期');return;}
   const o={days:[...mDays].sort(),start:timeVal('st'),end:timeVal('en'),type:mType,subjectId:val('msub')||null,chapter:val('mchap')||null,label:val('mlbl').trim(),note:val('mnote').trim()};
+  if(o.start&&o.end&&tmin(o.end)<=tmin(o.start)){alert(`結束時間要晚於開始時間（目前是 ${o.start} – ${o.end}）`);return;}
   pushRecent(o.subjectId);
   if(id){const r=S.routine.find(x=>x.id===id);Object.assign(r,o);} else {S.routine.push({id:nid('r'),...o});}
   save();closeOv();TAB==='today'?renderToday():renderWeek();
@@ -1866,7 +1890,7 @@ function saveBlock(id){
 function delRoutine(id){if(!confirm('刪除這個固定時段？'))return;S.routine=S.routine.filter(x=>x.id!==id);save();closeOv();TAB==='today'?renderToday():renderWeek();}
 
 /* ================= Modal：當天單次事件 ================= */
-function openEvent(e,key,def){
+function openEvent(e,key,def,needCat){
   key=key||ymd(cur); const isNew=!e;
   e=e||Object.assign({start:'09:00',end:'10:00',type:'custom',subjectId:null,chapter:null,label:'',note:''}, def||{});
   mType=e.type;
@@ -1879,16 +1903,17 @@ function openEvent(e,key,def){
     ${timeChips()}
     <div class="dur"><span>時長</span><button type="button" onclick="setEndFromStart(30)">30分</button><button type="button" onclick="setEndFromStart(60)">1小時</button><button type="button" onclick="setEndFromStart(90)">1.5小時</button><button type="button" onclick="setEndFromStart(120)">2小時</button></div>
     <div class="fld" style="margin-top:13px"><label>類型</label><div class="typepick" id="tp">${Object.entries(TYPES).map(([k,t])=>`<button data-t="${k}" class="${mType===k?'on':''}" onclick="pickType('${k}',this)"><span class="ti">${t.i}</span>${t.n}</button>`).join('')}</div></div>
-    <div class="fld" id="subjWrap"><label>科目（選填）</label>${recentSubjChips()}<select id="msub" onchange="onSubjChange()">${opts}</select></div>
+    <div class="fld" id="subjWrap"><label>科目（選填）</label>${recentSubjChips()}<select id="msub" onchange="onSubjChange()">${opts}</select>${(!S.subjects.length)?`<div id="subjHint" style="margin-top:8px;padding:10px 12px;border-radius:12px;background:var(--card2,rgba(194,65,12,.08));font-size:14px;line-height:1.6">還沒有科目可以選。${needCat?`<button type="button" class="btn ghost" style="margin-top:8px" onclick="quickLoadSubjects('${needCat}')">📚 載入國中三年科目範本，選好「${needCat}」</button>`:'到「忍者等級」按 📚 載入國中三年科目範本，之後就能選科目。'}</div>`:''}</div>
     <div class="fld" id="chapWrap"><label>章節（選填，把要讀的章節拉進來）</label><select id="mchap" onchange="syncTitle()">${chapOptions(e.subjectId,e.chapter)}</select></div>
     <div class="fld"><label>標題（會依類型／科目／章節自動帶入，也可自行修改）</label><input type="text" id="mlbl" value="${esc(e.label||autoTitleFrom(e.type,e.subjectId,e.chapter))}" oninput="lblEdited()" placeholder="例：模擬考 / 試煉・數學"></div>
     <div class="fld"><label>備註</label><input type="text" id="mnote" value="${esc(e.note||'')}" placeholder="選填，或點下方常用備註">${noteChips()}</div>
-    <div class="sbtns">${isNew?'':`<button class="rm" onclick="delEvent('${key}','${e.id}');closeOv()">刪除</button>`}<button class="cc" onclick="closeOv()">取消</button><button class="ok" onclick="saveEvent('${key}','${isNew?'':e.id}')">儲存</button></div>`);
+    <div class="sbtns" style="position:sticky;bottom:0;z-index:2;background:var(--card,#fff);padding-top:10px;padding-bottom:6px">${isNew?'':`<button class="rm" onclick="delEvent('${key}','${e.id}');closeOv()">刪除</button>`}<button class="cc" onclick="closeOv()">取消</button><button class="ok" onclick="saveEvent('${key}','${isNew?'':e.id}')">儲存</button></div>`);
   syncSubjWrap();
 }
 function saveEvent(key,id){
   const o={start:timeVal('st'),end:timeVal('en'),type:mType,subjectId:val('msub')||null,chapter:val('mchap')||null,label:val('mlbl').trim(),note:val('mnote').trim()};
   if(!o.label&&!o.subjectId){alert('請輸入標題或選科目');return;}
+  if(o.start&&o.end&&tmin(o.end)<=tmin(o.start)){alert(`結束時間要晚於開始時間（目前是 ${o.start} – ${o.end}）`);return;}
   pushRecent(o.subjectId);
   if(!S.events[key])S.events[key]=[];
   if(id){const e=S.events[key].find(x=>x.id===id);Object.assign(e,o);} else {S.events[key].push({id:nid('e'),...o});}
@@ -1927,8 +1952,8 @@ function saveSubject(sid){
 /* ================= 共用 ================= */
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
 function val(id){const e=document.getElementById(id);return e?e.value:'';}
-function sheet(html){document.getElementById('sheet').innerHTML=html;document.getElementById('ov').classList.add('show');}
-function closeOv(){document.getElementById('ov').classList.remove('show');}
+function sheet(html){const ov=document.getElementById('ov'),was=ov.classList.contains('show');document.getElementById('sheet').innerHTML=html;ov.classList.add('show');if(!was)navPush({t:TAB,ov:1});}
+function closeOv(){const ov=document.getElementById('ov'),was=ov.classList.contains('show');ov.classList.remove('show');if(was&&!navClosing&&history.state&&history.state.ov){navSkip++;history.back();}}
 function toast(msg){let t=document.getElementById('_toast');if(!t){t=document.createElement('div');t.id='_toast';t.style.cssText='position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:rgba(20,26,45,.92);color:#fff;padding:10px 18px;border-radius:20px;font-size:15px;font-weight:700;z-index:99;transition:.3s;opacity:0';document.body.appendChild(t);}t.textContent=msg;t.style.opacity='1';clearTimeout(t._x);t._x=setTimeout(()=>t.style.opacity='0',1500);}
 
 /* ================= 啟動 ================= */
