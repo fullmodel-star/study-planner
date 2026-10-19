@@ -5,6 +5,7 @@
  *   node _tools/ui_tests.mjs --dir=<資料夾>       → 對別的副本跑（反向測試用，可給絕對路徑）
  *
  * 2026-10-03 建立：只寫測試、不改 App。改版前先把「功能照樣能用」釘成測試。
+ * 2026-10-19 加第 12 節（冒險日誌版面美化：主視覺、HUD、字型、3D 圖、桌機兩欄、絕招鎖頭）與 11.4（只連本機）。
  *
  * 寫法（沿用 605 500碗 ui_tests.mjs 與 609 小釣手踩過的坑）：
  * - 不用 --virtual-time-budget；一律真實時間輪詢（until）。
@@ -520,6 +521,97 @@ try {
   }
   await c.width(390);
 
+  console.log('\n[12 冒險日誌 2026-10-19：首屏主視覺、HUD、圓體字型、3D 圖、桌機兩欄、絕招鎖頭]');
+  {
+    // 錢包放 2100 修行值（本計畫）＋5000（別的英語 App，不能算進等級）：應為「初階忍者」，距「中階忍者」(4500) 還差 2400
+    await c.width(390);
+    await c.open(BASE, { wallet: { xp: 7100, bySrc: { planner: 2100, vocab2000: 5000 }, correct: 0, units: 0, jutsu: [], seen: { planner: 1 } } });
+    await c.eval(`document.fonts.ready`);
+    const hero = await c.eval(`(()=>{const h=document.getElementById('mHero'); const r=h.getBoundingClientRect();
+      const box=(s)=>{const e=h.querySelector(s); if(!e) return null; const b=e.getBoundingClientRect(); return {l:b.left,r:b.right,t:b.top,b:b.bottom}};
+      const btns=[...h.querySelectorAll('button')]; const g=h.querySelector('.hgo'); const gb=g?g.getBoundingClientRect():null;
+      return {top:Math.round(r.top), inHeader:!!h.closest('header'), btns:btns.length, gold:g?getComputedStyle(g).backgroundColor:'', gBottom:gb?Math.round(gb.bottom):9999,
+        title:(h.querySelector('.ht')||{}).textContent||'', art:box('.hart'), texts:['.ht','.hm','.xpl','.hk'].map(box), xpl:(h.querySelector('.xpl')||{}).textContent||'',
+        now:+((h.querySelector('[role=progressbar]')||{getAttribute:()=>-1}).getAttribute('aria-valuenow'))}})()`);
+    ok('12.1 手機首屏：主視覺在內容區頂端（不在黏住的頁首）、裡面只有 1 顆主鈕且是金色、整顆在第一屏內（底 ' + hero.gBottom + 'px）',
+      !hero.inHeader && hero.btns === 1 && hero.gold === 'rgb(255, 200, 61)' && hero.gBottom <= 844 - 70 && hero.top < 260, hero);
+    const overlap = (a, b) => a && b && a.l < b.r && b.l < a.r && a.t < b.b && b.t < a.b;
+    const hit = hero.texts.filter((t) => overlap(hero.art, t));
+    ok('12.2 3D 插圖不壓到主視覺的任何文字（比對 ' + hero.texts.filter(Boolean).length + ' 段文字）', !!hero.art && hero.texts.filter(Boolean).length === 4 && hit.length === 0, { art: hero.art, hit });
+    // 等級／經驗條只算本計畫：2100 → 初階忍者，(2100-2000)/(4500-2000)=4%
+    const r = rankOf(2100), nx = RANKS[RANKS.indexOf(r) + 1];
+    const expPct = Math.round((2100 - r[1]) / (nx[1] - r[1]) * 100);
+    ok(`12.3 經驗條：寫「${r[0]}」、再 ${nx[1] - 2100} 升「${nx[0]}」，進度 ${expPct}%（不含別的 App 的 5000）`,
+      hero.xpl.includes(r[0]) && hero.xpl.includes(`再 ${nx[1] - 2100} `) && hero.xpl.includes(nx[0]) && hero.now === expPct, { xpl: hero.xpl, now: hero.now });
+    const hud = await c.eval(`[...document.querySelectorAll('#mHud .hc')].map(e=>({k:e.querySelector('.hv span').textContent,v:e.querySelector('.hv b').textContent,img:!!e.querySelector('img[src*="fluent-3d"]')}))`);
+    const hv = Object.fromEntries(hud.map((x) => [x.k, x.v]));
+    await c.eval(`go('today')`); await sleep(150);
+    const ring = await c.eval(`(document.querySelector('#todayStatus .ring span')||{}).textContent||'—'`);
+    await c.eval(`go('month')`); await sleep(150);
+    ok('12.4 HUD 3 格都有 3D 圖；修行值＝錢包 bySrc.planner（2100）、連續達成 0 天、今天完成＝今日分頁儀表板（' + ring + '）',
+      hud.length === 3 && hud.every((x) => x.img) && hv['修行值'] === '2100' && hv['連續達成'] === '0 天' && hv['今天完成'] === ring, { hud, ring });
+    const font = await c.until(`[...document.fonts].some(f=>f.family.replace(/"/g,'')==='SP Round' && f.status==='loaded')`, 5000);
+    const fams = await c.eval(`['.hero .ht','.hero .hgo','nav button','.tile','.mhead .mt'].map(s=>getComputedStyle(document.querySelector(s)).fontFamily)`);
+    ok('12.5 粉圓子集字型（SP Round）有載入，主視覺標題／主鈕／分頁／圖格／月份標題都用它', font && fams.every((f) => /SP Round/.test(f)), fams);
+    // 每個分頁都走一遍（絕招圖鑑、番茄鐘、今日任務標題的圖都在其他分頁），再把用到的 3D 圖檔各實際載入一次（不用 img.complete）
+    for (const tb of ['today', 'week', 'prog', 'month']) { await c.eval(`go('${tb}')`); await sleep(150); }
+    const f3 = await c.eval(`(async()=>{const srcs=[...new Set([...document.querySelectorAll('img[src*="fluent-3d"]')].map(i=>i.getAttribute('src')))];
+      const res=await Promise.all(srcs.map(s=>new Promise(ok=>{const im=new Image(); im.onload=()=>ok(im.naturalWidth>0?null:s); im.onerror=()=>ok(s); im.src=s;})));
+      return {n:srcs.length, broken:res.filter(Boolean)}})()`);
+    ok('12.6 用到的 3D 圖檔（' + f3.n + ' 種）全部載得出來', f3.n >= 11 && f3.broken.length === 0, f3);
+    const emo = await c.eval(`(()=>{const els=[...document.querySelectorAll('#tab-month button, nav button, #mHud .hc')];
+      const bad=els.map(e=>(e.textContent||'').trim()).filter(t=>/\\p{Extended_Pictographic}/u.test(t));
+      return {n:els.length, bad:bad.slice(0,5)}})()`);
+    ok('12.7 首頁操作元件與分頁（' + emo.n + ' 個）文字裡沒有 emoji', emo.n >= 50 && emo.bad.length === 0, emo);
+    const navImg = await c.eval(`[...document.querySelectorAll('nav button')].map(b=>!!b.querySelector('img[src*="fluent-3d"]') && !b.querySelector('svg'))`);
+    ok('12.8 底部 5 個分頁都是 3D 圖示（不混線條圖）', navImg.length === 5 && navImg.every(Boolean), navImg);
+    const tiles = await c.eval(`[...document.querySelectorAll('#mTiles .tile')].map(e=>({t:e.textContent.trim(),h:Math.round(e.getBoundingClientRect().height)}))`);
+    let t = await c.tap(`[...document.querySelectorAll('#mTiles .tile')].find(b=>b.textContent.includes('修行表'))`);
+    const onTab = await c.eval(`[...document.querySelectorAll('nav button.on')].map(b=>b.dataset.t).join()`);
+    ok('12.9 3D 圖格 3 個、高度 ≥ 44；點「修行表」圖格切到修行表分頁', tiles.length === 3 && tiles.every((x) => x.h >= 44) && t === true && onTab === 'week', { tiles, t, onTab });
+    await c.eval(`go('month')`);
+    // 新使用者預設只有「每日英語」1 項（還沒完成）：按主鈕到今日，不開快速新增
+    t = await c.tap(`document.querySelector('#mHero .hgo')`);
+    let after = await c.eval(`({tab:[...document.querySelectorAll('nav button.on')].map(b=>b.dataset.t).join(), sheet:document.getElementById('ov').classList.contains('show')})`);
+    ok('12.10a 今天有任務時按金色主鈕「' + ring + '」：切到今日、不跳快速新增', t === true && after.tab === 'today' && !after.sheet && ring !== '—', after);
+    // 把每日英語關掉 → 今天 0 項：主鈕改「排今天的任務」，按下去打開快速新增
+    await c.eval(`go('set')`); await sleep(150);
+    await c.eval(`S.eng.apps={}; save();`);  // 測試前置：關掉所有每日英語 App（等同設定頁全部取消勾選）
+    await c.eval(`go('month')`); await sleep(150);
+    const btn0 = await c.eval(`document.querySelector('#mHero .hgo').textContent.trim()`);
+    t = await c.tap(`document.querySelector('#mHero .hgo')`);
+    after = await c.eval(`({tab:[...document.querySelectorAll('nav button.on')].map(b=>b.dataset.t).join(), sheet:document.getElementById('ov').classList.contains('show')})`);
+    ok('12.10b 今天 0 項時主鈕是「' + btn0 + '」，按下去切到今日並打開快速新增', /排今天的任務/.test(btn0) && t === true && after.tab === 'today' && after.sheet, { btn0, after });
+    await c.eval(`closeOv()`);
+    // 絕招圖鑑：未解鎖不灰掉，右上鎖頭＋寫出解鎖條件
+    await c.eval(`go('prog')`); await sleep(150);
+    const jt = await c.eval(`(()=>{const off=[...document.querySelectorAll('.jgrid .jutsu.off')];
+      return {n:document.querySelectorAll('.jgrid .jutsu').length, off:off.length, lock:off.filter(e=>e.querySelector('img.jlock[src*="locked"]')).length,
+        cond:off.filter(e=>/^解鎖：.+/.test(e.querySelector('.jh').textContent)).length, minOp:Math.min(...off.map(e=>+getComputedStyle(e).opacity))}})()`);
+    ok(`12.11 絕招圖鑑：未解鎖 ${jt.off}/${jt.n} 招都有右上鎖頭、寫出「解鎖：條件」、不降透明度`,
+      jt.n >= 20 && jt.off >= 1 && jt.lock === jt.off && jt.cond === jt.off && jt.minOp === 1, jt);
+    await c.eval(`go('month')`);
+    ok('12.12 手機：今日任務預覽（桌機旁欄）收起、沒有水平捲動', await c.eval(`getComputedStyle(document.getElementById('mToday')).display==='none' && document.documentElement.scrollWidth<=innerWidth+1`));
+
+    // 桌機：左欄（HUD＋主視覺＋圖格＋今日任務）、右欄月曆；月曆格不再是巨大空白格
+    await c.width(1440, 900);
+    await c.eval(`go('month')`); await sleep(200);
+    const d = await c.eval(`(()=>{const L=document.querySelector('.mleft').getBoundingClientRect(), R=document.querySelector('.mright').getBoundingClientRect();
+      const cells=[...document.querySelectorAll('#mGrid .mcell')].map(e=>e.getBoundingClientRect().height); const nav=document.querySelector('nav').getBoundingClientRect();
+      const g=document.querySelector('#mHero .hgo').getBoundingClientRect();
+      return {lr:Math.round(L.right), rl:Math.round(R.left), lt:Math.round(L.top), rt:Math.round(R.top), lw:Math.round(L.width), rw:Math.round(R.width),
+        cellMax:Math.round(Math.max(...cells)), tpv:getComputedStyle(document.getElementById('mToday')).display, gBottom:Math.round(g.bottom), navTop:Math.round(nav.top),
+        hscroll:document.documentElement.scrollWidth>innerWidth+1}})()`);
+    ok('12.13 1440px：左右兩欄並排（左欄 ' + d.lw + 'px／月曆 ' + d.rw + 'px）、今日任務在左欄、月曆格高 ≤ 110px（實測 ' + d.cellMax + '）、主鈕在第一屏、沒有水平捲動',
+      d.lr <= d.rl && Math.abs(d.lt - d.rt) < 4 && d.rw > d.lw && d.tpv === 'block' && d.cellMax <= 110 && d.gBottom < d.navTop && !d.hscroll, d);
+    await c.eval(`go('today')`); await sleep(150);
+    const td = await c.eval(`(()=>{const a=document.querySelector('.tcol-a').getBoundingClientRect(), b=document.querySelector('.tcol-b').getBoundingClientRect();
+      return {ar:Math.round(a.right), bl:Math.round(b.left), at:Math.round(a.top), bt:Math.round(b.top), hscroll:document.documentElement.scrollWidth>innerWidth+1}})()`);
+    ok('12.14 1440px 今日分頁：番茄鐘／完成度在左、任務清單在右（兩欄）', td.ar <= td.bl && Math.abs(td.at - td.bt) < 4 && !td.hscroll, td);
+    await c.eval(`go('month')`);
+    await c.width(390);
+  }
+
   console.log('\n[11 沒有錯誤、沒有意外的對外連線]');
   ok('11.1 沒有未捕捉的 JS 例外', c.errors.length === 0, c.errors.slice(0, 3));
   const allAlerts = [...c.alertLog, ...((await c.eval(`window.__alerts`)) || [])];
@@ -527,6 +619,8 @@ try {
   const hosts = [...new Set(c.requests.filter((u) => /^https?:/i.test(u)).map((u) => new URL(u).hostname))];
   const unexpected = hosts.filter((h) => h !== '127.0.0.1' && !/(^|\.)googleapis\.com$|(^|\.)gstatic\.com$/.test(h));
   ok('11.3 只連本機（＋Google 字型）；沒有連到其他網域（請求 ' + c.requests.length + ' 次，主機：' + hosts.join(', ') + '）', c.requests.length > 0 && unexpected.length === 0, unexpected);
+  // 2026-10-19 冒險日誌：字型改成自帶子集，不再連 Google 字型 → 只准連本機
+  ok('11.4 只連本機 127.0.0.1（不連 Google 字型或任何外部網域；主機：' + hosts.join(', ') + '）', c.requests.length > 0 && hosts.length === 1 && hosts[0] === '127.0.0.1', hosts);
 } catch (e) {
   fail++;
   console.log('  FAIL 測試程式本身出錯：' + (e && e.stack || e));

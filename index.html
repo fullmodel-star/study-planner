@@ -14,9 +14,6 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <title>忍者修行計畫・學習日曆</title>
 <style>
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -31,7 +28,7 @@
     --bg:#141a2b;--card:#1e2740;--ink:#f2ead9;--muted:#b3a68c;--line:#2f3d5c;--navy:#0d1526;--brandtx:#ff9a4d;
     --sh:0 8px 24px rgba(0,0,0,.4);--sh2:0 12px 30px rgba(0,0,0,.5)}}
   html,body{margin:0}
-  body{font-family:"Outfit","PingFang TC","Microsoft JhengHei",system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--ink);
+  body{font-family:"PingFang TC","Microsoft JhengHei",system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--ink);
     -webkit-font-smoothing:antialiased;padding-bottom:calc(74px + env(safe-area-inset-bottom))}
   .wrap{max-width:720px;margin:0 auto;padding:0 14px}
   /* header */
@@ -366,7 +363,8 @@
   .timer-card.glowing{border-color:var(--brand);animation:focusGlow 2s infinite ease-in-out}
   @keyframes focusGlow{0%,100%{box-shadow:0 0 8px rgba(255,106,26,.25)}50%{box-shadow:0 0 20px rgba(255,106,26,.6)}}
   .timer-left{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:0 0 auto}
-  .timer-time{font-size:28px;font-weight:900;color:var(--ink);font-family:'Outfit',sans-serif;font-variant-numeric:tabular-nums}
+  .timer-time{font-size:28px;font-weight:900;color:var(--ink);font-family:var(--fr);font-variant-numeric:tabular-nums}
+  .timer-ic{width:44px;height:44px;flex:0 0 auto}
   .timer-label{font-size:13px;color:var(--muted);font-weight:700;margin-top:2px}
   .timer-right{flex:1;display:flex;flex-direction:column;gap:8px}
   .timer-controls{display:flex;gap:6px}
@@ -434,6 +432,114 @@
     .p-foot{margin-top:14px;font-size:10px;color:#777;text-align:center}
   }
 
+  /* ===== 2026-10-19 版面美化「冒險日誌」（晨曦橘＋深藍；七系列共用語言：圓體＋Fluent 3D＋首屏主視覺＋金色立體主鈕＋HUD＋3D 圖格）=====
+     字型：vendor/round-ui/sp-round.woff2（jf open 粉圓子集，內部名稱改 SP Round，OFL）；3D 圖：vendor/fluent-3d/（Fluent Emoji 3D，MIT）。 */
+  @font-face{font-family:"SP Round";src:url(vendor/round-ui/sp-round.woff2) format("woff2");font-display:swap}
+  :root{--fr:"SP Round","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;--r:16px;--gold:#ffc83d;--gold-d:#b7791f;--goldtx:#3a2400;
+    --night1:#16213e;--night2:#263c6b;--dawn:#ff8a3d}
+  body{background:linear-gradient(180deg,#ffe2c2 0,var(--bg) 460px) no-repeat,var(--bg)}
+  @media (prefers-color-scheme:dark){body{background:linear-gradient(180deg,#22305a 0,var(--bg) 460px) no-repeat,var(--bg)}}
+  .htxt h1,.hero .ht,.hgo,.btn,.sbtns button,nav button,.sec-t,.mhead .mt,.card h2,.goalcard h2,.task .tl,.jutsu .jn,.rankcard .rkt b,
+  .tile,.hud,.sheet h3,.mcell .mnum,.wkday .wh,.dnow b,.yhead .yn,.subj .snm,.timer-time,.qgrid button,.tpv .tpt,.mleg{font-family:var(--fr)}
+  .htxt h1{font-weight:400;font-size:21px;letter-spacing:1px}
+  .sec-t{font-weight:400;font-size:15px;color:var(--ink)}
+  .sec-t img{width:24px;height:24px}
+  .card h2,.goalcard h2,.sheet h3,.mhead .mt,.task .tl,.dnow b,.wkday .wh,.yhead .yn,.subj .snm{font-weight:400}
+  .mhead .mt small{font-family:"PingFang TC","Microsoft JhengHei",system-ui,sans-serif}
+  /* HUD 狀態列：只用 App 現有數字（連續達成天數／本計畫修行值／今天完成數） */
+  .hud{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+  .hud .hc{display:flex;align-items:center;gap:7px;min-width:0;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:7px 9px;box-shadow:var(--sh)}
+  .hud img{width:28px;height:28px;flex:0 0 auto}
+  .hud .hv{display:flex;flex-direction:column;min-width:0;line-height:1.2}
+  .hud .hv span{font-size:13px;color:var(--muted);white-space:nowrap}
+  .hud .hv b{font-weight:400;font-size:18px;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap}
+  /* 首屏主視覺：夜空深藍漸層到晨曦橘，唯一主行動＝金色立體鈕 */
+  .hero{position:relative;overflow:hidden;margin-top:12px;padding:18px;border-radius:24px;border:0;color:#fff;
+    background:radial-gradient(90% 80% at 100% 100%,rgba(255,154,77,.95) 0,rgba(255,106,26,.5) 32%,transparent 62%),linear-gradient(160deg,var(--night1) 0,var(--night2) 60%,#3b3f7a 100%);
+    box-shadow:0 0 0 1px rgba(255,200,61,.35) inset,0 18px 34px -16px rgba(22,33,62,.8)}
+  .hero .htx{position:relative;z-index:1;margin-right:104px}
+  .hero .hk{font-family:var(--fr);font-weight:400;font-size:14px;color:#ffd59a;letter-spacing:1px}
+  .hero .ht{margin:4px 0 6px;font-weight:400;font-size:26px;line-height:1.25;color:#fff}
+  .hero .hm{font-size:15px;font-weight:700;color:#f1e9dc;margin:0 0 12px;line-height:1.5}
+  .hero .xpb{position:relative;z-index:1;height:12px;border-radius:99px;background:rgba(0,0,0,.32);overflow:hidden}
+  .hero .xpb i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--gold),var(--dawn));min-width:6px}
+  .hero .xpl{position:relative;z-index:1;font-size:13px;color:#f3e6d0;margin:6px 0 14px;line-height:1.45}
+  .hero .xpl b{color:#ffd59a;font-weight:800}
+  .hero .hart{position:absolute;top:16px;right:12px;width:96px;height:96px;filter:drop-shadow(0 10px 14px rgba(0,0,0,.45));pointer-events:none}
+  .hero .hgo{position:relative;z-index:1;max-width:none;width:100%;font-family:var(--fr);background:var(--gold);color:var(--goldtx);font-weight:400;font-size:19px;border-radius:16px;
+    box-shadow:0 5px 0 var(--gold-d),0 12px 20px -8px rgba(0,0,0,.45);transition:transform .08s ease,box-shadow .08s ease}
+  .hero .hgo img{width:28px;height:28px}
+  .hero .hgo:active{transform:translateY(4px);box-shadow:0 1px 0 var(--gold-d)}
+  .hero .hgo:focus-visible{outline:3px solid #fff;outline-offset:3px}
+  .hero.done .hgo{background:rgba(255,255,255,.14);color:#fff;border:2px solid var(--gold);box-shadow:none}
+  /* 3D 功能圖格（切到其他分頁） */
+  .tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+  .tile{position:relative;display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0;background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+    padding:10px 4px 10px;box-shadow:var(--sh);cursor:pointer;color:var(--ink);font-size:16px;font-weight:400;transition:transform .15s ease}
+  .tile:hover{transform:translateY(-2px)}
+  .tile:active{transform:translateY(1px)}
+  .tile img{width:46px;height:46px;margin-bottom:3px}
+  .tile small{font-family:"PingFang TC","Microsoft JhengHei",system-ui,sans-serif;font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+  /* 桌機旁欄：今日任務預覽 */
+  .tpv{display:none;margin-top:12px;padding:14px 15px}
+  .tpv h2{margin:0 0 8px;display:flex;align-items:center;gap:8px;font-size:17px}
+  .tpv h2 img{width:26px;height:26px}
+  .tpv h2 span{margin-left:auto;font-family:"PingFang TC","Microsoft JhengHei",system-ui,sans-serif;font-size:13px;color:var(--muted);font-weight:700}
+  .tpr{display:flex;align-items:center;gap:10px;width:100%;padding:9px 6px;border:0;border-top:1px solid var(--line);background:none;color:var(--ink);font-family:inherit;text-align:left;cursor:pointer}
+  .tpr:first-of-type{border-top:0}
+  .tpr .sw{width:5px;align-self:stretch;border-radius:3px;flex:0 0 auto}
+  .tpr .tm{font-size:13px;font-weight:800;color:var(--muted);font-variant-numeric:tabular-nums;width:44px;flex:0 0 auto}
+  .tpr .tpt{flex:1;min-width:0;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tpr .st{font-size:13px;font-weight:800;border-radius:99px;padding:2px 9px;background:var(--bg);color:var(--muted);flex:0 0 auto}
+  .tpr.done .st{background:var(--self);color:#fff}
+  .tpr.done .tpt{color:var(--muted);text-decoration:line-through}
+  .tpv .tpe{font-size:15px;color:var(--muted);line-height:1.7;margin:4px 0 0}
+  /* 月曆格／任務卡／圖例：同一套（圓角 --r、類型色＝短色條、科目＝1 字色塊） */
+  .mcell{border-radius:14px}
+  .mcell.today{box-shadow:0 0 0 3px rgba(255,138,61,.25),var(--sh)}
+  .mcell .mdots{gap:3px}
+  .mcell .mdots i,.mleg i,.tpr .sw{border-radius:3px}
+  .mcell .mdots i{width:12px;height:5px}
+  .mleg{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;box-shadow:var(--sh);gap:6px 14px}
+  .mleg i{width:14px;height:6px}
+  .task{border-radius:var(--r);border-left-width:6px}
+  .wblk{border-radius:12px}
+  .mcell .msubs b,.task .badge{border-radius:6px}
+  /* 主要按鈕：立體（下緣實色陰影、按下會沉） */
+  .btn:not(.ghost),.sbtns .ok{box-shadow:0 4px 0 #8a2c08;transition:transform .08s ease,box-shadow .08s ease}
+  .btn:not(.ghost):active,.sbtns .ok:active{transform:translateY(3px);box-shadow:0 1px 0 #8a2c08}
+  .btn,.sbtns button{font-weight:400;font-size:16px}
+  /* 底部分頁：3D 圖示 */
+  nav{justify-content:center}
+  nav button{flex:1 1 0;max-width:150px;font-size:14px;font-weight:400}
+  nav button .ni{width:28px;height:28px;stroke-width:0;transition:transform .15s ease}
+  nav button.on .ni{transform:translateY(-2px) scale(1.1)}
+  nav button.on{color:var(--brandtx)}
+  /* 絕招圖鑑：未解鎖不灰掉，右上鎖頭＋寫出解鎖條件 */
+  .jutsu{position:relative;border-radius:14px}
+  .jutsu.off{opacity:1;border-style:solid;background:var(--card)}
+  .jutsu .je img{width:40px;height:40px;display:block;margin:0 auto}
+  .jutsu .jlock{position:absolute;top:5px;right:5px;width:22px;height:22px}
+  .jutsu.off .jn{color:var(--muted)}
+  .jutsu.off .jh{color:var(--ink);font-weight:700}
+  @media (prefers-color-scheme:dark){.jutsu.off{background:var(--card)}
+    .hud .hc,.tile{background:#1e2740}}
+  /* 桌機：月曆不再撐滿整頁——左欄 HUD＋主視覺＋圖格＋今日任務，右欄月曆 */
+  @media(min-width:1000px){
+    .mtop{display:grid;grid-template-columns:minmax(360px,420px) 1fr;gap:26px;align-items:start}
+    .tpv{display:block}
+    .mright .mhead{margin-top:14px}
+    .mcell{min-height:86px;padding:7px 4px 6px}
+    .mcell .msubs{margin-top:6px;min-height:18px}
+    .mcell .mdots{margin-top:6px}
+    .hero{padding:22px}
+    .hero .ht{font-size:30px}
+    .hero .hart{width:112px;height:112px}
+    .hero .htx{margin-right:118px}
+    .tcols{display:grid;grid-template-columns:minmax(360px,1fr) 1.25fr;gap:26px;align-items:start}
+    .tcol-b>.sec-t:first-child{margin-top:12px}
+  }
+
 </style>
 
 <!-- ── 分享預覽（稜線 App 分享卡系統 · 方案A 暖米白）─────────────────────
@@ -471,7 +577,14 @@
 <div class="wrap">
   <!-- ============ 月曆 ============ -->
   <section id="tab-month">
+    <div class="mtop">
+    <div class="mleft">
+    <div class="hud" id="mHud"></div>
     <div class="hero" id="mHero"></div>
+    <div class="tiles" id="mTiles"></div>
+    <div class="card tpv" id="mToday"></div>
+    </div>
+    <div class="mright">
     <div class="mhead">
       <button onclick="monthShift(-1)" aria-label="上個月">‹</button>
       <div class="mt" id="mTitle" onclick="monthToday()"></div>
@@ -487,6 +600,8 @@
       <span><i style="background:var(--t-exam)"></i>試煉</span>
       <span>✓ 任務全達成</span>
     </div>
+    </div>
+    </div>
     <div class="msum" id="mSum"></div>
   </section>
 
@@ -497,18 +612,24 @@
       <div class="dnow" id="dnow" onclick="jumpToday()"></div>
       <button onclick="shiftDay(1)" aria-label="後一天">›</button>
     </div>
+    <div class="tcols">
+    <div class="tcol-a">
     <div id="ninjaQuote" class="quote-card"></div>
     <div id="focusTimer" class="card timer-card"></div>
     <div id="todayStatus"></div>
     <div id="streakBox"></div>
     <div id="engBox"></div>
-    <div class="sec-t">📜 今日任務 <span class="r" id="todayCount"></span></div>
+    </div>
+    <div class="tcol-b">
+    <div class="sec-t"><img src="vendor/fluent-3d/tearoff.png" alt="" width="24" height="24">今日任務 <span class="r" id="todayCount"></span></div>
     <div class="tasks" id="taskList"></div>
+    </div>
+    </div>
   </section>
 
   <!-- ============ 週課表 ============ -->
   <section id="tab-week" class="hide">
-    <div class="sec-t">📜 每週修行表 <span class="r">點時段可編輯</span></div>
+    <div class="sec-t"><img src="vendor/fluent-3d/scroll.png" alt="" width="24" height="24">每週修行表 <span class="r">點時段可編輯</span></div>
     <div class="wk" id="weekGrid"></div>
     <button class="btn ghost mt" onclick="openBlock()">＋ 新增固定時段（補習／自習）</button>
     <div class="tip">💡 這裡設定<b>每週固定</b>的作息：補習班、自習、每日英語。設定好後「今日」分頁每天會自動帶出，不用重排。臨時的活動請到「今日」用右下 <b>＋</b> 新增當天事件。</div>
@@ -544,11 +665,11 @@
 <button class="fab" id="fab" onclick="onFab()" aria-label="新增">＋</button>
 
 <nav>
-  <button data-t="month" class="on" onclick="go('month')"><svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"></path></svg>任務曆</button>
-  <button data-t="today" onclick="go('today')"><svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line><path d="M9 16l2 2 4-4"></path></svg>今日</button>
-  <button data-t="week" onclick="go('week')"><svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line><line x1="7" y1="14" x2="17" y2="14"></line><line x1="7" y1="18" x2="17" y2="18"></line></svg>修行表</button>
-  <button data-t="prog" onclick="go('prog')"><svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"></path><circle cx="12" cy="12" r="2"></circle></svg>忍者等級</button>
-  <button data-t="set" onclick="go('set')"><svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>設定</button>
+  <button data-t="month" class="on" onclick="go('month')"><img class="ni" src="vendor/fluent-3d/calendar.png" alt="" width="28" height="28">任務曆</button>
+  <button data-t="today" onclick="go('today')"><img class="ni" src="vendor/fluent-3d/tearoff.png" alt="" width="28" height="28">今日</button>
+  <button data-t="week" onclick="go('week')"><img class="ni" src="vendor/fluent-3d/scroll.png" alt="" width="28" height="28">修行表</button>
+  <button data-t="prog" onclick="go('prog')"><img class="ni" src="vendor/fluent-3d/swords.png" alt="" width="28" height="28">忍者等級</button>
+  <button data-t="set" onclick="go('set')"><img class="ni" src="vendor/fluent-3d/gear.png" alt="" width="28" height="28">設定</button>
 </nav>
 
 <!-- modal host -->
@@ -945,7 +1066,8 @@ function jutsuHtml(){
   S.plannerJutsu=S.plannerJutsu||[];
   const have=new Set(S.plannerJutsu), gained=JUTSU.filter(j=>have.has(j.id)).length;
   const cells=JUTSU.map(j=>{const on=have.has(j.id);
-    return `<div class="jutsu ${on?'on':'off'}"><div class="je">${on?j.e:'❓'}</div><div class="jn">${on?esc(j.n):'？？？'}</div><div class="jh">${on?'已學會':esc(j.hint)}</div></div>`;}).join('');
+    return on?`<div class="jutsu on"><div class="je">${j.e}</div><div class="jn">${esc(j.n)}</div><div class="jh">已學會</div></div>`
+      :`<div class="jutsu off"><img class="jlock" src="vendor/fluent-3d/locked.png" alt="未解鎖"><div class="je"><img src="vendor/fluent-3d/scroll.png" alt=""></div><div class="jn">？？？</div><div class="jh">解鎖：${esc(j.hint)}</div></div>`;}).join('');
   // 跨App英語家族修行：只做鼓勵，不計入本計畫等級
   const w=Ninja.get(); const cross=Math.max(0,(w.xp||0)-plannerXPval());
   const crossHtml=cross>0?`<div style="margin-top:15px;padding:11px 13px;background:#fdf1df;border:1px solid #f0dcbf;border-radius:12px">
@@ -970,6 +1092,7 @@ function renderTimerUI() {
   
   el.className = 'card timer-card' + (pomoRunning ? ' glowing' : '');
   el.innerHTML = `
+    <img class="timer-ic" src="vendor/fluent-3d/timer.png" alt="" width="44" height="44">
     <div class="timer-left">
       <span class="timer-time" id="timerDisplay">${displayTime}</span>
       <span class="timer-label">專注修行時間</span>
@@ -1228,12 +1351,45 @@ function renderHero(){
   const t=new Date(); t.setHours(0,0,0,0);
   const key=ymd(t), P=dayProgress(key,blocksFor(t));
   const head=`${t.getMonth()+1}月${t.getDate()}日 ${DAYW[t.getDay()]}`;
-  let msg,btn,cls='hero';
-  if(!P.total){ msg='今天還沒排任務，先排一件最小的事。'; btn='＋ 排今天的任務'; }
-  else if(P.all){ msg=`今天 ${P.total} 項任務全部完成，修行之火 +1。`; btn='回顧今天的完成項目'; cls='hero done'; }
-  else { msg=`今天有 ${P.total} 項要做，已完成 ${P.done} 項。`; btn='開始今天的修行'; }
+  let msg,btn,cls='hero',ttl;
+  if(!P.total){ ttl='今天的修行，<br>從一件小事開始'; msg='今天還沒排任務，先排一件最小的事。'; btn='＋ 排今天的任務'; }
+  else if(P.all){ ttl='今天的修行<br>全部完成！'; msg=`今天 ${P.total} 項任務全部完成，修行之火 +1。`; btn='回顧今天的完成項目'; cls='hero done'; }
+  else { ttl=`忍者，<br>今天有 ${P.total} 項修行`; msg=`已完成 ${P.done} 項，還差 ${P.total-P.done} 項就全達成。`; btn='開始今天的修行'; }
+  // 經驗條：本計畫修行值（bySrc.planner）在目前等級裡走到哪
+  const ri=rankInfo(), xpPct=ri.nx?Math.max(0,Math.min(100,Math.round(ri.into/ri.span*100))):100;
+  const xpTxt=ri.nx?`<b>${ri.r.n}</b>・再 ${ri.need} 修行值升「${ri.nx.n}」`:`<b>${ri.r.n}</b>・修行值 ${ri.xp}，已到最高等級`;
   el.className=cls;
-  el.innerHTML=`<div class="hk">今天・${head}</div><div class="hm">${msg}</div><button type="button" class="hgo" onclick="heroGo()">${btn}</button>`;
+  el.innerHTML=`<img class="hart" src="vendor/fluent-3d/ninja.png" alt="">
+    <div class="htx"><div class="hk">今天・${head}</div><h2 class="ht">${ttl}</h2><div class="hm">${msg}</div></div>
+    <div class="xpb" role="progressbar" aria-label="升級進度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${xpPct}"><i style="width:${xpPct}%"></i></div><div class="xpl">${xpTxt}</div>
+    <button type="button" class="hgo" onclick="heroGo()">${P.total&&!P.all?'<img src="vendor/fluent-3d/swords.png" alt="">':''}<span class="lbl">${btn}</span></button>`;
+  renderHud(P); renderTiles(P); renderTodayPreview(t,key);
+}
+/* HUD：只用現有數字（連續全達成天數、本計畫修行值、今天完成數） */
+function renderHud(P){
+  const el=document.getElementById('mHud'); if(!el)return;
+  const cell=(ic,lb,v)=>`<div class="hc"><img src="vendor/fluent-3d/${ic}.png" alt=""><div class="hv"><span>${lb}</span><b>${v}</b></div></div>`;
+  el.innerHTML=cell('fire','連續達成',streakDays()+' 天')+cell('star','修行值',plannerXPval())+cell('check','今天完成',P.total?`${P.done}/${P.total}`:'—');
+}
+/* 3D 功能圖格：切到其他分頁（底部分頁的同一組圖示） */
+function renderTiles(P){
+  const el=document.getElementById('mTiles'); if(!el)return;
+  const left=P.total-P.done, ri=rankInfo();
+  const tile=(t,ic,nm,sub)=>`<button type="button" class="tile" onclick="go('${t}')"><img src="vendor/fluent-3d/${ic}.png" alt="">${nm}<small>${sub}</small></button>`;
+  el.innerHTML=tile('today','tearoff','今日任務',!P.total?'還沒排任務':(left?`${left} 項待完成`:'全部完成'))
+    +tile('week','scroll','修行表',`每週 ${(S.routine||[]).length} 個時段`)
+    +tile('prog','swords','忍者等級',esc(ri.r.n));
+}
+/* 桌機旁欄：今天的任務清單（點了到「今日」分頁） */
+function renderTodayPreview(t,key){
+  const el=document.getElementById('mToday'); if(!el)return;
+  const blks=studyBlocks(blocksFor(t)), done=blks.filter(b=>isChecked(key,b._k)).length;
+  const rows=blks.slice(0,8).map(b=>{const T=TYPES[b.type]||TYPES.custom, sub=b.subjectId?subjOf(b.subjectId):null, ck=isChecked(key,b._k);
+    const ttl=b.label||(sub?sub.name:T.n);
+    return `<button type="button" class="tpr ${ck?'done':''}" onclick="heroGo()"><span class="sw" style="background:${T.c}"></span><span class="tm">${esc(b.start||'')}</span><span class="tpt">${esc(ttl)}</span><span class="st">${ck?'完成':'待做'}</span></button>`;}).join('');
+  el.innerHTML=`<h2><img src="vendor/fluent-3d/tearoff.png" alt="">今日任務<span>${blks.length?`${done}/${blks.length}`:''}</span></h2>`
+    +(rows||'<p class="tpe">今天還沒有排任務。按上面的金色按鈕排一件最小的事。</p>')
+    +(blks.length>8?`<p class="tpe">還有 ${blks.length-8} 項，到「今日」分頁看全部。</p>`:'');
 }
 function heroGo(){
   cur=new Date(); cur.setHours(0,0,0,0);
