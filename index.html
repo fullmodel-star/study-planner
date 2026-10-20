@@ -260,6 +260,13 @@
   .enggrp>summary::-webkit-details-marker{display:none}
   .enggrp>summary::before{content:'▸';color:var(--muted);font-size:13px}
   .enggrp[open]>summary::before{content:'▾'}
+  /* 2026-10-20 文字量調整：新手引導精簡成 4 行，完整說明收在 ⓘ（全文仍在 DOM） */
+  .onb-more{margin-top:10px;border-top:1px solid var(--line);padding-top:4px}
+  .onb-more>summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:6px;min-height:44px;font-size:15px;font-weight:800;color:var(--brandtx)}
+  .onb-more>summary::-webkit-details-marker{display:none}
+  .onb-more>summary::after{content:'▾';display:inline-block;color:var(--muted);font-size:13px}
+  .onb-more[open]>summary::after{transform:rotate(180deg)}
+  .onb-more>div{font-size:14px;line-height:1.8;color:var(--muted);padding-bottom:4px}
   .enggrp>summary b{margin-left:auto;font-size:13px;color:var(--brandtx);font-weight:800}
   .enggrp .chk{padding:9px 12px}
   .setrow .field{display:flex;flex-direction:column;gap:5px;margin-top:10px}
@@ -2126,15 +2133,22 @@ if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch
 (function(){ if(localStorage.getItem('sp_onb'))return;
   setTimeout(()=>{ sheet(`<h3>🥷 歡迎來到忍者修行計畫</h3>
     <div style="font-size:15px;line-height:1.9;color:var(--ink)">
-    這是幫「<b>${esc(S.student)}</b>」忍者規劃<b>國中三年</b>修行的手帳（暑假可先複習國一、預習國二）。完成任務會升等，衝上<b>忍者宗師</b>吧！
+    幫「<b>${esc(S.student)}</b>」排<b>國中三年</b>修行，完成任務就升等！
     <div style="margin:12px 0;display:flex;flex-direction:column;gap:9px">
-      <div style="display:flex;gap:11px;align-items:flex-start"><span style="font-size:20px">📆</span><div><b>任務曆</b>：整月一眼看完，色點標出每天的任務，點日期看細節</div></div>
-      <div style="display:flex;gap:11px;align-items:flex-start"><span style="font-size:20px">📅</span><div><b>今日</b>：每天的道場、修行、英語忍術，完成自己打勾 ✓</div></div>
-      <div style="display:flex;gap:11px;align-items:flex-start"><span style="font-size:20px">🗓️</span><div><b>修行表</b>：排每週固定的道場(補習)／修行(自習)時段</div></div>
-      <div style="display:flex;gap:11px;align-items:flex-start"><span style="font-size:20px">🥷</span><div><b>忍者等級</b>：每天完成計畫任務累積修行值，三年慢慢從修行新生爬到忍者宗師，並蒐集 21 種絕招</div></div>
-      <div style="display:flex;gap:11px;align-items:flex-start"><span style="font-size:20px">🔤</span><div><b>英語忍術</b>：接上你們家的英語 App，每天一點不遺忘</div></div>
+      <div style="display:flex;gap:11px;align-items:center"><span style="font-size:20px">📆</span><div><b>任務曆</b>：整月任務一眼看完</div></div>
+      <div style="display:flex;gap:11px;align-items:center"><span style="font-size:20px">📅</span><div><b>今日</b>：道場、修行、英語，做完打勾</div></div>
+      <div style="display:flex;gap:11px;align-items:center"><span style="font-size:20px">🗓️</span><div><b>修行表</b>：排每週固定時段</div></div>
+      <div style="display:flex;gap:11px;align-items:center"><span style="font-size:20px">🥷</span><div><b>忍者等級</b>：累積修行值、蒐集絕招</div></div>
     </div>
-    目前是<b>空白</b>的，兩種開始方式：到「修行表」自己排時段、到「忍者等級」按<b>📚載入國中三年科目範本</b>；也可到「設定」載入完整示範參考。</div>
+    目前是<b>空白</b>的，可先載入範本。
+    <details class="onb-more"><summary>ⓘ 完整說明</summary><div>
+    這是幫「<b>${esc(S.student)}</b>」忍者規劃<b>國中三年</b>修行的手帳（暑假可先複習國一、預習國二）。完成任務會升等，衝上<b>忍者宗師</b>吧！<br>
+    📆 <b>任務曆</b>：整月一眼看完，色點標出每天的任務，點日期看細節<br>
+    📅 <b>今日</b>：每天的道場、修行、英語忍術，完成自己打勾 ✓<br>
+    🗓️ <b>修行表</b>：排每週固定的道場(補習)／修行(自習)時段<br>
+    🥷 <b>忍者等級</b>：每天完成計畫任務累積修行值，三年慢慢從修行新生爬到忍者宗師，並蒐集 21 種絕招<br>
+    🔤 <b>英語忍術</b>：接上你們家的英語 App，每天一點不遺忘<br>
+    目前是<b>空白</b>的，兩種開始方式：到「修行表」自己排時段、到「忍者等級」按<b>📚載入國中三年科目範本</b>；也可到「設定」載入完整示範參考。</div></details></div>
     <div class="sbtns" style="margin-top:16px"><button class="cc" onclick="localStorage.setItem('sp_onb','1');localStorage.setItem('sp_whatsnew_v1','1');closeOv();go('set')">先看設定/載入範本</button><button class="ok" onclick="localStorage.setItem('sp_onb','1');localStorage.setItem('sp_whatsnew_v1','1');closeOv()">開始修行 ▶</button></div>`);
   },400);
 })();
