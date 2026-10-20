@@ -612,6 +612,60 @@ try {
     await c.width(390);
   }
 
+  console.log('\n[13 手機返回鍵（2026-10-20）]');
+  {
+    // 讀目前畫面：哪個分頁看得到、底部哪顆亮、彈出層開著沒
+    const view = () => c.eval(`({tabs:['month','today','week','prog','set'].filter(x=>!document.getElementById('tab-'+x).classList.contains('hide')),
+      on:[...document.querySelectorAll('nav button.on')].map(b=>b.dataset.t), ov:document.getElementById('ov').classList.contains('show'), st:history.state})`);
+    const back = async () => { await c.eval(`history.back()`); await sleep(450); };
+    const at = (v, t) => v.tabs.length === 1 && v.tabs[0] === t && v.on.length === 1 && v.on[0] === t && !v.ov;
+    await c.open(BASE, { clear: true });
+    let v = await view();
+    ok('13.1 開啟時在任務曆，且這筆紀錄標成任務曆', at(v, 'month') && v.st && v.st.t === 'month', v);
+    await c.tap(navBtn('today')); await sleep(200);
+    const vt = await view();
+    await back(); v = await view();
+    ok('13.2 任務曆 → 點「今日」→ 上一頁 → 回到任務曆（不是停在今日）', at(vt, 'today') && at(v, 'month'), { vt, v });
+    await c.tap(navBtn('week')); await sleep(150); await c.tap(navBtn('prog')); await sleep(150);
+    await back(); const v1 = await view(); await back(); const v2 = await view();
+    ok('13.3 任務曆 → 修行表 → 忍者等級，連按兩次上一頁依序回修行表、任務曆', at(v1, 'week') && at(v2, 'month'), { v1, v2 });
+    await c.tap(navBtn('today')); await sleep(150);
+    const tf = await c.tap(`document.getElementById('fab')`);
+    const opened = await sheetOpen();
+    await back(); const v3 = await view();
+    await back(); const v4 = await view();
+    ok('13.4 今日開「快速新增」彈出層 → 上一頁先關彈出層、仍在今日；再上一頁回任務曆', tf === true && opened && at(v3, 'today') && at(v4, 'month'), { tf, opened, v3, v4 });
+    // 彈出層開著時用鍵盤（Tab 到底部分頁鈕＋Enter）切分頁：彈出層要關掉，上一頁要回原分頁
+    await c.tap(navBtn('today')); await sleep(150);
+    await c.tap(`document.getElementById('fab')`); const op2 = await sheetOpen();
+    await c.eval(`${navBtn('week')}.focus()`);
+    for (const type of ['keyDown', 'keyUp']) await c.send('Input.dispatchKeyEvent', { type, key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13, ...(type === 'keyDown' ? { text: '\r' } : {}) });
+    await sleep(500);
+    const v5 = await view();
+    await back(); const v6 = await view();
+    ok('13.5 彈出層開著時用鍵盤切到「修行表」→ 彈出層關閉；上一頁回今日（不是只關彈出層、停在修行表）', op2 && at(v5, 'week') && at(v6, 'today'), { op2, v5, v6 });
+    await back();
+    // 重新整理後：殘留的舊分頁 state 不可讓上一頁跳到錯的分頁
+    await c.tap(navBtn('week')); await sleep(150);
+    // 用真的重新整理（Page.reload 會保留這筆紀錄的 state；Page.navigate 到同網址會換掉 state，測不到）
+    await c.send('Page.reload', {});
+    await sleep(300);
+    await c.until(`document.querySelectorAll('#mGrid .mcell').length === 42`, 15000);
+    const v7 = await view();
+    await c.tap(navBtn('today')); await sleep(150);
+    await back(); const v8 = await view();
+    ok('13.6 在修行表重新整理 → 開在任務曆；點今日再上一頁 → 回任務曆（不是重新整理前的修行表）', at(v7, 'month') && v7.st && v7.st.t === 'month' && at(v8, 'month'), { v7, v8 });
+    // 在首頁按上一頁才離開：這份文件消失（換成上一筆紀錄的頁面）。
+    // 用不同網址開（?bk=1）＝真的跨文件導覽；Page.navigate 到同網址會被當成重新整理，前面的紀錄仍算同一份文件。
+    await c.open(BASE + '?bk=1', { clear: true });
+    const hist = (await c.send('Page.getNavigationHistory')).result;
+    await c.eval(`window.__bk=1`);
+    await c.eval(`history.back()`); await sleep(900);
+    const left = await c.eval(`typeof window.__bk === 'undefined'`).catch(() => true);
+    ok('13.7 在任務曆（首頁）按上一頁 → 離開這一頁（文件已換掉）', left === true, { left, idx: hist.currentIndex, n: hist.entries.length, after: await c.eval('[location.href, JSON.stringify(history.state)]').catch(() => null) });
+    await c.open(BASE, { clear: true });
+  }
+
   console.log('\n[11 沒有錯誤、沒有意外的對外連線]');
   ok('11.1 沒有未捕捉的 JS 例外', c.errors.length === 0, c.errors.slice(0, 3));
   const allAlerts = [...c.alertLog, ...((await c.eval(`window.__alerts`)) || [])];

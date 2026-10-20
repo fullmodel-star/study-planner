@@ -1277,13 +1277,17 @@ let TAB='month';
 /* 返回鍵（2026-10-13）：切換分頁與開彈出層寫入瀏覽紀錄；手機返回鍵先關彈出層、再回上一個分頁，在首頁才離開 App */
 let navSkip=0, navQ=[], navClosing=false;
 function navPush(st){ if(navSkip){navQ.push(st);return} try{history.pushState(st,'')}catch(_){} }
-try{ if(!history.state||!history.state.t) history.replaceState({t:'month'},''); }catch(_){}
+/* 2026-10-20：App 每次開啟都從任務曆開始 → 一律把目前這筆標成任務曆（重新整理後殘留的舊 state 會讓上一頁跳到錯的分頁） */
+try{ history.replaceState({t:'month'},''); }catch(_){}
 window.addEventListener('popstate',e=>{
   if(navSkip){navSkip--; if(!navSkip){const q=navQ;navQ=[];q.forEach(s=>{try{history.pushState(s,'')}catch(_){}})} return;}
   if(document.getElementById('ov').classList.contains('show')){navClosing=true;closeOv();navClosing=false;return;}
   const st=e.state||{t:'month'}; if(st.t&&st.t!==TAB) go(st.t,true);
 });
-function go(t,fromPop){if(!fromPop&&t!==TAB)navPush({t});TAB=t;
+function go(t,fromPop){
+  /* 2026-10-20：彈出層開著時切分頁（鍵盤 Tab 可以跳到底部分頁鈕）→ 先關彈出層並退掉它那筆紀錄，否則上一頁只會關彈出層、分頁停在新的那頁 */
+  if(!fromPop&&document.getElementById('ov').classList.contains('show'))closeOv();
+  if(!fromPop&&t!==TAB)navPush({t});TAB=t;
   ['month','today','week','prog','set'].forEach(x=>document.getElementById('tab-'+x).classList.toggle('hide',x!==t));
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
   document.getElementById('fab').classList.toggle('hide',t==='set'||t==='prog'||t==='month');

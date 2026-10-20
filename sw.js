@@ -1,4 +1,4 @@
-const C='study-planner-v39-adventure';
+const C='study-planner-v40-adventure';
 const A=['./','index.html','manifest.json','icon-192.png','icon-512.png','icon-maskable-512.png','icon.svg','ridgeline-ui.css','favicon.svg','favicon-32.png','rl-mark-denali-white.png','rl-mark-denali-navy.png',
   'vendor/round-ui/sp-round.woff2','vendor/fluent-3d/ninja.png','vendor/fluent-3d/fire.png','vendor/fluent-3d/star.png','vendor/fluent-3d/check.png','vendor/fluent-3d/calendar.png','vendor/fluent-3d/tearoff.png','vendor/fluent-3d/scroll.png','vendor/fluent-3d/swords.png','vendor/fluent-3d/gear.png','vendor/fluent-3d/locked.png','vendor/fluent-3d/timer.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(A).catch(()=>{})))});
