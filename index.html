@@ -56,6 +56,21 @@
   .mempty .btn{max-width:320px;margin:0 auto}
   h2{font-size:16px;font-weight:800}
   .rl-signature .rl-sig-by{font-size:15px;letter-spacing:4px}
+  /* 2026-10-20 文字量調整 wave2：頁尾免責收成一行「⚠ 使用前須知」，點開看全文（字級 15px 同原文、顏色沿用 --muted＝深淺色都跟 App） */
+  .rl-disc{max-width:640px;margin:10px auto 0;font-size:15px;line-height:1.7;color:var(--muted,#6E8BA3);text-align:center}
+  .rl-disc>summary{display:flex;align-items:center;justify-content:center;gap:6px;width:fit-content;margin:0 auto;min-height:44px;padding:6px 16px;box-sizing:border-box;border:1px solid rgba(130,130,130,.35);border-radius:999px;font-size:15px;letter-spacing:1px;cursor:pointer;list-style:none;-webkit-tap-highlight-color:transparent}
+  .rl-disc>summary::-webkit-details-marker{display:none}
+  .rl-disc>summary::after{content:"\203A";display:inline-block;font-size:18px;line-height:1;transition:transform .2s}
+  .rl-disc[open]>summary::after{transform:rotate(90deg)}
+  .rl-disc>summary:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+  .rl-disc-body{margin-top:8px}
+  /* 設定頁「給家長的使用建議」收成一行「💡 家長使用建議 ›」（全文仍在 DOM） */
+  details.tip>summary{display:flex;align-items:center;gap:6px;min-height:44px;margin:-13px -14px;padding:0 14px;font-size:15px;font-weight:800;cursor:pointer;list-style:none;border-radius:14px;-webkit-tap-highlight-color:transparent}
+  details.tip>summary::-webkit-details-marker{display:none}
+  details.tip>summary::after{content:"\203A";margin-left:auto;font-size:18px;line-height:1;transition:transform .2s}
+  details.tip[open]>summary{margin-bottom:6px}
+  details.tip[open]>summary::after{transform:rotate(90deg)}
+  details.tip>summary:focus-visible{outline:2px solid currentColor;outline-offset:2px}
   .htxt p span{white-space:nowrap}
   /* date bar */
   .datebar{display:flex;align-items:center;gap:8px;margin:12px 0 4px}
@@ -666,7 +681,8 @@
     <p class="rl-sig-quote">今天的試煉，<br>是明天的高度。</p>
   </div>
   <p class="rl-sig-by">Ridgeline · by Lucas</p>
-  <p style="font-size:15px;line-height:1.7;color:var(--muted,#6E8BA3);max-width:640px;margin:14px auto 0">© 2026 Ridgeline · Ridgeline · by Lucas｜免費使用；著作權皆屬作者，未經同意請勿重製、散布或作商業用途。<br>⚠️ 免責聲明：本 App 為個人學習規劃工具，資料僅存於本裝置，不代表任何官方課綱或考試進度保證，請依自身狀況調整計畫。</p>
+  <p style="font-size:15px;line-height:1.7;color:var(--muted,#6E8BA3);max-width:640px;margin:14px auto 0">© 2026 Ridgeline · Ridgeline · by Lucas｜免費使用；著作權皆屬作者，未經同意請勿重製、散布或作商業用途。</p>
+  <details class="rl-disc"><summary>⚠ 使用前須知</summary><div class="rl-disc-body">⚠️ 免責聲明：本 App 為個人學習規劃工具，資料僅存於本裝置，不代表任何官方課綱或考試進度保證，請依自身狀況調整計畫。</div></details>
 </footer>
 
 <button class="fab" id="fab" onclick="onFab()" aria-label="新增">＋</button>
@@ -1913,14 +1929,14 @@ function renderSet(){
     <button class="btn ghost mt" style="color:var(--cram)" onclick="if(confirm('清空全部資料（科目、作息、進度、打勾）？此動作無法復原，建議先匯出備份。')){localStorage.removeItem(KEY);S=seed();save();go('today');toast('🧹 已清空，成為空白計畫');}">🗑️ 清空全部資料（回到空白）</button>
   </div>
 
-  <div class="tip">
+  <details class="tip" id="parentTip"><summary>💡 家長使用建議</summary>
     <b>💡 給家長的使用建議（忍者修行版）</b><br>
     ①「修行表」先把每週固定的<b>道場(補習)</b>和<b>修行(自習)</b>時段排好，之後每天會自動帶出。<br>
     ② 修行時段記得<b>指定科目</b>，孩子讀完按「⚡習得忍術」就會累積「忍者等級」分頁的進度。<br>
     ③ 每天讓孩子自己<b>完成任務打勾</b>，連續達成會累積 🔥 <b>修行之火</b>。忍者等級<b>只看這個計畫裡的努力</b>（打勾 +5、當天全達成 +20、精熟章節 +30、番茄鐘 +10），從「修行新生」一路慢慢爬到「忍者宗師」，是<b>國中三年</b>的長期目標，不會一下就滿級。<br>
     ④ 暑假建議<b>複習 : 預習 ≈ 6:4</b>，先把國一觀念（尤其數學）補穩，再輕鬆預習國二。<br>
     ⑤ 每天英語忍術 15–20 分鐘，長期比考前抱佛腳更有效。
-  </div>`;
+  </details>`;
   const on=document.getElementById('onbk'); if(on)on.checked=false;
 }
 function targetRowHtml(t,i){
